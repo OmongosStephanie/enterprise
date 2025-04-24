@@ -1,0 +1,2 @@
+Stephanie Omongos -i did the register.php,  login.php, index.php, beverage.php, and also the user.sql so i did all the code 
+Clint harold Sumampong - he did continue to pulish our design and he also added the admin part of our design like the customer's list 
