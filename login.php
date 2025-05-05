@@ -63,26 +63,9 @@
         <button type="submit" name="login" class="login-btn">Login</button>
     </form>
     <div class="links">
-        Don’t have an account yet? <a href="#">Register for free</a>
+        Don’t have an account yet? <a href="register.php">Register for free</a>
     </div>
 </div>
-
-<?php
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
-    // Example credentials
-    $correctEmail = "username@gmail.com";
-    $correctPassword = "password123";
-
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-
-    if ($email === $correctEmail && $password === $correctPassword) {
-        echo "<script>alert('Login successful!'); window.location.href='dashboard.php';</script>";
-    } else {
-        echo "<script>alert('Invalid email or password.');</script>";
-    }
-}
-?>
 
 </body>
 </html>
