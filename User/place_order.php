@@ -1,7 +1,12 @@
 <?php
 session_start();
 
-// Check if items are submitted via POST
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$user_id = $_SESSION['user_id'];
 $items = $_POST['items'] ?? [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($items)) {
@@ -10,27 +15,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($items)) {
     $location = $_POST['location'];
     $street = $_POST['street'];
 
-    // Calculate total amount
     $total = 0;
     foreach ($items as $item) {
         $total += floatval($item['price']) * intval($item['quantity']);
     }
 
-    // Connect to the database
     $conn = new mysqli("localhost", "root", "", "online_shop");
-
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
 
-    // Insert into `orders`
-    $stmt = $conn->prepare("INSERT INTO orders (fullname, branch, location, street, total) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssd", $fullname, $branch, $location, $street, $total);
+    $stmt = $conn->prepare("INSERT INTO orders (user_id, fullname, branch, location, street, total) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssd", $user_id, $fullname, $branch, $location, $street, $total);
     $stmt->execute();
     $order_id = $stmt->insert_id;
     $stmt->close();
 
-    // Insert each item into `order_items`
     $itemStmt = $conn->prepare("INSERT INTO order_items (order_id, product_name, price, quantity, subtotal) VALUES (?, ?, ?, ?, ?)");
     foreach ($items as $index => $item) {
         $name = $item['name'];
@@ -44,15 +44,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($items)) {
     $itemStmt->close();
     $conn->close();
 
-    // Clear ordered items from session cart
     foreach ($items as $index => $item) {
         if (isset($_SESSION['cart'][$index])) {
             unset($_SESSION['cart'][$index]);
         }
     }
-    $_SESSION['cart'] = array_values($_SESSION['cart']); // Reindex
-
-    // Display confirmation
+    $_SESSION['cart'] = array_values($_SESSION['cart']);
+    
+    // Show confirmation UI and then redirect after delay
     ?>
     <!DOCTYPE html>
     <html lang="en">
@@ -60,12 +59,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($items)) {
         <meta charset="UTF-8">
         <title>Order Confirmation - S&R</title>
         <script src="https://cdn.tailwindcss.com"></script>
+        <meta http-equiv="refresh" content="5;url=orders.php">
     </head>
-    <body class="bg-gray-100 font-sans p-6">
-        <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow text-center">
-            <h1 class="text-2xl font-bold text-green-600 mb-4">🎉 Order Successfully Placed!</h1>
-            <p class="mb-6">Thank you for your purchase! Your order is being processed and will be shipped soon.</p>
-            <a href="dashboard.php" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Continue Shopping</a>
+    <body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans">
+        <div class="bg-white shadow-lg rounded-lg p-8 max-w-lg text-center">
+            <div class="text-green-500 text-5xl mb-4">✔️</div>
+            <h1 class="text-2xl font-bold mb-2">Order Successfully Placed!</h1>
+            <p class="text-gray-600 mb-6">Thank you for shopping with us! Your order is now being processed. You will be redirected to your order history shortly.</p>
+            <a href="orders.php" class="inline-block bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition">View My Orders Now</a>
+            <p class="text-sm text-gray-400 mt-4">Redirecting in 5 seconds...</p>
         </div>
     </body>
     </html>
@@ -74,4 +76,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($items)) {
 } else {
     echo "No items selected.";
 }
-?>

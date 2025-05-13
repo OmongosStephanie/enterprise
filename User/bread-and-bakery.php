@@ -1,55 +1,82 @@
 <?php
 session_start();
+require_once '../includes/db.php';
 
-// Add to Cart Logic
-if (isset($_POST['add_to_cart'])) {
-    $product_id = $_POST['product_id'];
-    $product_name = $_POST['product_name'];
-    $product_price = $_POST['product_price'];
-    $product_quantity = isset($_POST['product_quantity']) ? (int)$_POST['product_quantity'] : 1;
+$limit = 10;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
 
-    if (!isset($_SESSION['cart'])) {
-        $_SESSION['cart'] = [];
-    }
-
-    // Check if product is already in cart
-    $found = false;
-    foreach ($_SESSION['cart'] as &$item) {
-        if ($item['id'] == $product_id) {
-            $item['quantity'] += $product_quantity;
-            $found = true;
-            break;
-        }
-    }
-
-    if (!$found) {
-        $_SESSION['cart'][] = [
-            'id' => $product_id,
-            'name' => $product_name,
-            'price' => $product_price,
-            'quantity' => $product_quantity
-        ];
-    }
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
+// Fetch Bread and Bakery from Inventory
+$sql = "SELECT * FROM inventory WHERE category = 'Bread and Bakery' LIMIT $limit OFFSET $offset";
+$result = $conn->query($sql);
+if (!$result) {
+    die("Error fetching data: " . $conn->error);
 }
+
+// Count total bread and bakery items for pagination
+$total_sql = "SELECT COUNT(*) as total FROM inventory WHERE category = 'Bread and Bakery'";
+$total_result = $conn->query($total_sql);
+$total_row = $total_result->fetch_assoc();
+$total_products = $total_row['total'];
+$total_pages = ceil($total_products / $limit);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bread & Bakery - S&R Online Shop</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Bread and Bakery - S&R Online Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
+    <script>
+        // Open the modal when Add to Cart is clicked
+        function openCartModal(productId, productName, productPrice, maxQty) {
+            document.getElementById('modalProductId').value = productId;
+            document.getElementById('modalProductName').textContent = productName;
+            document.getElementById('modalProductPrice').value = productPrice;
+
+            const qtyInput = document.getElementById('modalQuantity');
+            qtyInput.max = maxQty;
+            qtyInput.value = 1;
+
+            document.getElementById('cartModal').classList.remove('hidden');
+            document.getElementById('cartModal').classList.add('flex');
         }
-    </style>
+
+        // Close the modal
+        function closeCartModal() {
+            document.getElementById('cartModal').classList.add('hidden');
+            document.getElementById('cartModal').classList.remove('flex');
+        }
+
+        // Submit the data to the cart.php for adding item
+        function submitToCart() {
+            const productId = document.getElementById('modalProductId').value;
+            const productName = document.getElementById('modalProductName').textContent;
+            const productPrice = document.getElementById('modalProductPrice').value;
+            const quantity = document.getElementById('modalQuantity').value;
+
+            const formData = new FormData();
+            formData.append('add_to_cart', '1');
+            formData.append('product_id', productId);
+            formData.append('product_name', productName);
+            formData.append('product_price', productPrice);
+            formData.append('product_quantity', quantity);
+
+            fetch('cart.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert("Item added to cart!");
+            })
+            .catch(error => {
+                alert("Error adding item to cart.");
+            });
+
+            closeCartModal();
+        }
+    </script>
 </head>
 <body class="bg-gray-100">
     <header class="bg-gray-800 text-white py-4">
@@ -65,6 +92,7 @@ if (isset($_POST['add_to_cart'])) {
         </div>
     </header>
 
+    <!-- Sidebar Navigation -->
     <nav class="bg-gray-700 py-3">
         <div class="container mx-auto px-4">
             <ul class="flex space-x-6">
@@ -81,98 +109,84 @@ if (isset($_POST['add_to_cart'])) {
         </div>
     </nav>
 
-
-<!-- Back to Dashboard Button -->
-<div class="container mx-auto px-4 mt-4">
-    <a href="dashboard.php" class="inline-block bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold px-4 py-2 rounded">
-        ← Back
-    </a>
-</div>
-
-<section class="container mx-auto py-6 px-4">
-
-
-    <section class="container mx-auto py-6 px-4">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Explore Our Bread & Bakery</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-
-            <!-- Whole Wheat Bread -->
-            <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-shadow duration-300">
-                <img src="https://imgs.search.brave.com/fBqIPDeN8gu3Ds2yTO9PdoxzN0vZXE_6tWkzPORwFso/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvMTU1/MTM2OTM3L3Bob3Rv/L3dob2xlLXdoZWF0/LWJyZWFkLXdpdGgt/c2VlZHMuanBnP3M9/NjEyeDYxMiZ3PTAm/az0yMCZjPWlsc0h2/OEZwdzNZMW9jMFFz/U1BET0Z6blVsX2F0/eW03N3B4MEQ0Z1gt/MEk9" alt="Whole Wheat Bread" class="rounded-md w-full h-40 object-cover mb-3">
-                <h3 class="text-lg font-semibold text-gray-700 text-center">Whole Wheat Bread</h3>
-                <p class="text-gray-500 mb-2">₱35.00</p>
-                <button type="button" onclick="openModal('1', 'Whole Wheat Bread', '35.00')" class="bg-blue-500 hover:bg-blue-600 text-white rounded-md px-4 py-2 focus:outline-none">
-                    Add to Cart
-                </button>
-            </div>
-
-            <!-- Croissant -->
-            <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-shadow duration-300">
-                <img src="https://imgs.search.brave.com/33AGzk7j-MEg4ldfcICoHhZNYGVhYkr766i31pJ6Sjo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzAwLzQ1Lzc4LzEy/LzM2MF9GXzQ1Nzgx/MjkwX1dha1N5VW9t/SEtURmswaVlwVHNk/c1ZLVnpaN1RrZ0I2/LmpwZw" alt="Croissant" class="rounded-md w-full h-40 object-cover mb-3">
-                <h3 class="text-lg font-semibold text-gray-700 text-center">Croissant</h3>
-                <p class="text-gray-500 mb-2">₱50.00</p>
-                <button type="button" onclick="openModal('2', 'Croissant', '50.00')" class="bg-blue-500 hover:bg-blue-600 text-white rounded-md px-4 py-2 focus:outline-none">
-                    Add to Cart
-                </button>
-            </div>
-
-            <!-- Baguette -->
-            <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-shadow duration-300">
-                <img src="https://imgs.search.brave.com/98UqRUuA3kx-j4Fb7q61EvUqnzF_sLiPdqK9EqGL2pg/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9tZWRp/YS5pc3RvY2twaG90/by5jb20vaWQvNTA0/NDgyMjMzL3Bob3Rv/L2ZyZW5jaC1iYWd1/ZXR0ZXMuanBnP3M9/NjEyeDYxMiZ3PTAm/az0yMCZjPUdiRDhx/MVR3aVA0U29wSDZI/d0N4U3ZsYWQtUWlT/U2k3c0RqU0k3VHp6/MGM9" alt="Baguette" class="rounded-md w-full h-40 object-cover mb-3">
-                <h3 class="text-lg font-semibold text-gray-700 text-center">Baguette</h3>
-                <p class="text-gray-500 mb-2">₱40.00</p>
-                <button type="button" onclick="openModal('3', 'Baguette', '40.00')" class="bg-blue-500 hover:bg-blue-600 text-white rounded-md px-4 py-2 focus:outline-none">
-                    Add to Cart
-                </button>
-            </div>
-
-            <!-- Banana Bread -->
-            <div class="bg-white rounded-lg shadow-lg p-6 flex flex-col items-center justify-center hover:shadow-xl transition-shadow duration-300">
-                <img src="https://imgs.search.brave.com/9k_cshuQGBzITeaGJvAKOoZrdArKyztPsZVing-u_hc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAwLzg3LzIyLzIx/LzM2MF9GXzg3MjIy/MTA5Xzh2NDVPa2ht/Rm9kWGFBaUpkN29t/dk55am1ITUN4OTd2/LmpwZw" alt="Banana Bread" class="rounded-md w-full h-40 object-cover mb-3">
-                <h3 class="text-lg font-semibold text-gray-700 text-center">Banana Bread</h3>
-                <p class="text-gray-500 mb-2">₱45.00</p>
-                <button type="button" onclick="openModal('4', 'Banana Bread', '45.00')" class="bg-blue-500 hover:bg-blue-600 text-white rounded-md px-4 py-2 focus:outline-none">
-                    Add to Cart
-                </button>
-            </div>
-
+    <!-- Main Content -->
+    <div class="flex-1 ml-6">
+        <!-- Back Button -->
+        <div class="container mx-auto px-4 mt-4">
+            <a href="dashboard.php" class="inline-block bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold px-4 py-2 rounded">
+                ← Back
+            </a>
         </div>
-    </section>
 
-    <!-- Modal -->
-    <div id="addToCartModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-        <div class="bg-white p-6 rounded-lg w-80">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4" id="modalProductName">Product Name</h2>
-            <form method="POST">
-                <input type="hidden" name="product_id" id="modalProductId">
-                <input type="hidden" name="product_name" id="modalProductNameInput">
-                <input type="hidden" name="product_price" id="modalProductPrice">
+        <!-- Product Display -->
+        <main class="container mx-auto py-6 px-4">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Explore Our Bread and Bakery</h2>
 
-                <label for="quantity" class="block text-sm text-gray-700 mb-2">Quantity:</label>
-                <input type="number" name="product_quantity" id="productQuantity" value="1" min="1" class="w-full border border-gray-300 px-3 py-2 rounded-md mb-4">
+            <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                <?php if ($result->num_rows > 0): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <div class="bg-white p-5 rounded-xl shadow hover:shadow-lg transition duration-300 flex flex-col items-center text-center">
+                            <img src="<?= htmlspecialchars($row['image_url']) ?>" alt="Product" class="w-28 h-28 object-cover mb-4 rounded-md">
+                            <h3 class="text-lg font-semibold text-gray-900"><?= htmlspecialchars($row['product_name']) ?></h3>
+                            <p class="text-blue-600 font-bold text-lg mt-1">₱<?= number_format($row['price'], 2) ?></p>
+                            <p class="text-sm text-gray-500 mb-4">In stock: <?= $row['quantity'] ?></p>
 
-                <div class="flex justify-end space-x-3">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
-                    <button type="submit" name="add_to_cart" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Add</button>
+                            <?php if ($row['quantity'] > 0): ?>
+                                <button 
+                                    onclick="openCartModal(
+                                        '<?= $row['product_id'] ?>', 
+                                        '<?= htmlspecialchars($row['product_name']) ?>', 
+                                        '<?= $row['price'] ?>', 
+                                        <?= $row['quantity'] ?>
+                                    )"
+                                    class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md transition"
+                                >
+                                    Add to Cart
+                                </button>
+                            <?php else: ?>
+                                <span class="text-red-500 font-semibold mt-2">Out of Stock</span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p class="text-center col-span-full text-gray-500">No bread and bakery products found.</p>
+                <?php endif; ?>
+            </div>
+
+            <!-- Pagination -->
+            <?php if ($total_pages > 1): ?>
+                <div class="flex justify-center mt-10">
+                    <nav class="inline-flex space-x-2">
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <a href="?page=<?= $i ?>" class="px-4 py-2 border rounded-md <?= $i === $page ? 'bg-blue-500 text-white' : 'bg-white text-blue-500 hover:bg-blue-100' ?> transition">
+                                <?= $i ?>
+                            </a>
+                        <?php endfor; ?>
+                    </nav>
                 </div>
-            </form>
+            <?php endif; ?>
+        </main>
+    </div>
+
+    <!-- Modal for Quantity Adjustment -->
+    <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-80">
+            <h2 class="text-xl font-semibold mb-2" id="modalProductName">Product</h2>
+            <input type="number" id="modalQuantity" min="1" value="1" class="w-full p-2 border rounded mb-4">
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeCartModal()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">Cancel</button>
+                <button onclick="submitToCart()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">OK</button>
+            </div>
+            <input type="hidden" id="modalProductId">
+            <input type="hidden" id="modalProductPrice">
         </div>
     </div>
 
-    <!-- Modal Script -->
-    <script>
-        function openModal(id, name, price) {
-            document.getElementById('modalProductId').value = id;
-            document.getElementById('modalProductNameInput').value = name;
-            document.getElementById('modalProductPrice').value = price;
-            document.getElementById('modalProductName').textContent = name;
-            document.getElementById('productQuantity').value = 1;
-            document.getElementById('addToCartModal').classList.remove('hidden');
-        }
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white text-center py-6 mt-16">
+        <p>&copy; 2025 S & R Online Shop. All rights reserved.</p>
+    </footer>
 
-        function closeModal() {
-            document.getElementById('addToCartModal').classList.add('hidden');
-        }
-    </script>
+    <?php $conn->close(); ?>
 </body>
 </html>

@@ -1,21 +1,50 @@
 <?php
 session_start();
 
-// Update or remove item quantity
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['update'])) {
-        $index = $_POST['index'];
-        $newQuantity = $_POST['quantity'];
-        if (isset($_SESSION['cart'][$index]) && $newQuantity > 0) {
-            $_SESSION['cart'][$index]['quantity'] = $newQuantity;
-        }
-    } elseif (isset($_POST['remove'])) {
-        $index = $_POST['remove'];
-        if (isset($_SESSION['cart'][$index])) {
-            unset($_SESSION['cart'][$index]);
-            $_SESSION['cart'] = array_values($_SESSION['cart']); // Reindex
-        }
+// Handle Add to Cart
+if (isset($_POST['add_to_cart'])) {
+    $product_id = $_POST['product_id'];
+    $product_name = $_POST['product_name'];
+    $product_price = floatval($_POST['product_price']);
+    $product_quantity = intval($_POST['product_quantity']);
+
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
     }
+
+    if (isset($_SESSION['cart'][$product_id])) {
+        $_SESSION['cart'][$product_id]['quantity'] += $product_quantity;
+    } else {
+        $_SESSION['cart'][$product_id] = [
+            'name' => $product_name,
+            'price' => $product_price,
+            'quantity' => $product_quantity
+        ];
+    }
+
+    header("Location: cart.php");
+    exit();
+}
+
+// Handle Quantity Update
+if (isset($_POST['update']) && isset($_POST['index']) && isset($_POST['quantity'])) {
+    $index = $_POST['index'];
+    $new_qty = intval($_POST['quantity']);
+    if ($new_qty > 0 && isset($_SESSION['cart'][$index])) {
+        $_SESSION['cart'][$index]['quantity'] = $new_qty;
+    }
+    header("Location: cart.php");
+    exit();
+}
+
+// Handle Item Removal
+if (isset($_POST['remove'])) {
+    $remove_index = $_POST['remove'];
+    if (isset($_SESSION['cart'][$remove_index])) {
+        unset($_SESSION['cart'][$remove_index]);
+    }
+    header("Location: cart.php");
+    exit();
 }
 ?>
 
@@ -42,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const form = document.getElementById('checkout-form');
             const selectedItems = document.querySelectorAll('input[name="select[]"]:checked');
 
-            // Clear previous hidden inputs
             document.querySelectorAll('.checkout-item-data').forEach(el => el.remove());
 
             if (selectedItems.length === 0) {
@@ -54,30 +82,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const index = cb.value;
                 const price = cb.dataset.price;
                 const quantity = cb.dataset.quantity;
-
                 const name = cb.closest('tr').querySelector('td:nth-child(2)').textContent.trim();
 
-                const nameField = document.createElement('input');
-                nameField.type = 'hidden';
-                nameField.name = `items[${index}][name]`;
-                nameField.value = name;
-                nameField.classList.add('checkout-item-data');
-
-                const priceField = document.createElement('input');
-                priceField.type = 'hidden';
-                priceField.name = `items[${index}][price]`;
-                priceField.value = price;
-                priceField.classList.add('checkout-item-data');
-
-                const qtyField = document.createElement('input');
-                qtyField.type = 'hidden';
-                qtyField.name = `items[${index}][quantity]`;
-                qtyField.value = quantity;
-                qtyField.classList.add('checkout-item-data');
-
-                form.appendChild(nameField);
-                form.appendChild(priceField);
-                form.appendChild(qtyField);
+                ['name', 'price', 'quantity'].forEach(key => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = `items[${index}][${key}]`;
+                    input.value = key === 'name' ? name : (key === 'price' ? price : quantity);
+                    input.classList.add('checkout-item-data');
+                    form.appendChild(input);
+                });
             });
 
             form.submit();
@@ -87,25 +101,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const quantityInput = document.getElementById('quantity-' + index);
             const quantity = quantityInput.value;
             if (quantity > 0) {
-                // Update quantity in the session via AJAX or form submit
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '';
-                const inputIndex = document.createElement('input');
-                inputIndex.type = 'hidden';
-                inputIndex.name = 'index';
-                inputIndex.value = index;
-                const inputQuantity = document.createElement('input');
-                inputQuantity.type = 'hidden';
-                inputQuantity.name = 'quantity';
-                inputQuantity.value = quantity;
-                const inputUpdate = document.createElement('input');
-                inputUpdate.type = 'hidden';
-                inputUpdate.name = 'update';
-                inputUpdate.value = 'true';
-                form.appendChild(inputIndex);
-                form.appendChild(inputQuantity);
-                form.appendChild(inputUpdate);
+                ['index', 'quantity', 'update'].forEach(key => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = key;
+                    input.value = key === 'index' ? index : (key === 'quantity' ? quantity : 'true');
+                    form.appendChild(input);
+                });
                 document.body.appendChild(form);
                 form.submit();
             }
@@ -113,7 +118,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         function confirmRemove(index) {
             if (confirm("Are you sure you want to remove this item from your cart?")) {
-                // Create a hidden form to submit the removal action
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = '';
@@ -134,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
         <h1 class="text-2xl font-bold mb-4">Shopping Cart</h1>
         <?php if (empty($_SESSION['cart'])): ?>
-            <p>Your cart is empty. You have already placed your order.</p>
+            <p>Your cart is empty. <a href="dashboard.php" class="text-blue-600 hover:underline">Go shopping</a>.</p>
         <?php else: ?>
             <form id="checkout-form" method="post" action="checkout.php">
                 <table class="w-full mb-4">
@@ -150,8 +154,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </thead>
                     <tbody>
                         <?php foreach ($_SESSION['cart'] as $index => $item): 
-                            $quantity = $item['quantity'] ?? 1;
-                            $price = $item['price'];
+                            $quantity = isset($item['quantity']) ? $item['quantity'] : 1;
+                            $price = isset($item['price']) ? $item['price'] : 0;
+                            $name = isset($item['name']) ? $item['name'] : 'Unnamed Product';
                             $subtotal = $quantity * $price;
                         ?>
                             <tr class="border-b">
@@ -161,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         data-quantity="<?= $quantity ?>" 
                                         onchange="updateTotal()">
                                 </td>
-                                <td class="p-2"><?= htmlspecialchars($item['name']) ?></td>
+                                <td class="p-2"><?= htmlspecialchars($name) ?></td>
                                 <td class="p-2">₱<?= number_format($price, 2) ?></td>
                                 <td class="p-2">
                                     <input type="number" id="quantity-<?= $index ?>" value="<?= $quantity ?>" min="1" class="w-16 p-1 border rounded" onchange="updateQuantity(<?= $index ?>)">
@@ -175,7 +180,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </tbody>
                 </table>
                 <p class="font-semibold">Total: ₱<span id="total">0.00</span></p>
-                <!-- Hidden checkout data will be appended here by JavaScript -->
                 <button type="button" id="checkout-btn" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hidden hover:bg-blue-600" onclick="goToCheckout()">Proceed to Checkout</button>
             </form>
         <?php endif; ?>
