@@ -2,7 +2,7 @@
 session_start();
 
 // Check if admin is logged in
-if (!isset($_SESSION['admin_logged_in'])) {
+if (!isset($_SESSION['staff_logged_in'])) {
     header('Location: login.php');
     exit();
 }
@@ -55,14 +55,14 @@ $result = $conn->query($sql);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Payments - Admin Panel</title>
+    <title>Payments - Staff Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans">
 <div class="flex">
     <!-- Sidebar -->
     <div class="w-64 bg-gray-800 text-white h-screen p-4">
-        <h2 class="text-2xl font-bold mb-8">Admin</h2>
+        <h2 class="text-2xl font-bold mb-8">Staff</h2>
         <ul>
             <li><a href="dashboard.php" class="text-lg py-2 block">Dashboard</a></li>
             <li><a href="inventory.php" class="text-lg py-2 block">Inventory</a></li>
@@ -76,8 +76,8 @@ $result = $conn->query($sql);
     <!-- Main Content -->
 <div class="flex-1 p-4">
     <div class="flex justify-between items-center bg-white p-3 rounded shadow mb-5 text-lg">
-        <h2 class="text-2xl font-semibold">Payments Management</h2>
-        <div class="text-gray-600">📅 <?php echo date("M d, Y"); ?> | 👤 Admin</div>
+        <h2 class="text-2xl font-semibold"> Management</h2>
+        <div class="text-gray-600">📅 <?php echo date("M d, Y"); ?> | 👤 Staff</div>
     </div>
 
     <?php if (!empty($status_message)): ?>

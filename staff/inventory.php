@@ -2,23 +2,23 @@
 session_start();
 
 // Check if admin is logged in
-if (!isset($_SESSION['admin_logged_in'])) {
+if (!isset($_SESSION['staff_logged_in'])) {
     header('Location: login.php');
     exit();
 }
 
 // Include database connection
-require_once '../includes/db.php'; // Adjust path as necessary
+require_once '../includes/db.php';
 
 // Pagination setup
-$limit = 10; // Number of products per page
+$limit = 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// Category selection (default category is 'Beverages')
+// Category filter
 $category = isset($_GET['category']) ? $_GET['category'] : 'Beverages';
 
-// Modify query to filter by category
+// Fetch products
 $sql = "SELECT * FROM inventory WHERE category = ? LIMIT $limit OFFSET $offset";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("s", $category);
@@ -29,7 +29,7 @@ if (!$result) {
     die("Error fetching data: " . $conn->error);
 }
 
-// Get total number of products for pagination
+// Total products for pagination
 $total_sql = "SELECT COUNT(*) as total FROM inventory WHERE category = ?";
 $total_stmt = $conn->prepare($total_sql);
 $total_stmt->bind_param("s", $category);
@@ -44,14 +44,14 @@ $total_pages = ceil($total_products / $limit);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Inventory - Admin Panel</title>
+    <title>Inventory - Staff Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800">
     <div class="flex">
         <!-- Sidebar -->
         <div class="w-64 bg-gray-800 text-white h-screen p-4">
-            <h2 class="text-2xl font-bold mb-8">Admin</h2>
+            <h2 class="text-2xl font-bold mb-8">Staff</h2>
             <ul>
                 <li><a href="dashboard.php" class="text-lg py-2 block">Dashboard</a></li>
                 <li><a href="inventory.php" class="text-lg py-2 block bg-gray-700 rounded">Inventory</a></li>
@@ -66,8 +66,8 @@ $total_pages = ceil($total_products / $limit);
         <div class="flex-1 p-8">
             <!-- Topbar -->
             <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-lg mb-8">
-                <h2 class="text-2xl font-semibold">Inventory Management</h2>
-                <div class="text-sm text-gray-500">📅 <?php echo date("M d, Y"); ?> | 👤 Admin</div>
+                <h2 class="text-2xl font-semibold">Inventory Tracking</h2>
+                <div class="text-sm text-gray-500">📅 <?php echo date("M d, Y"); ?> | 👤 Staff</div>
             </div>
 
             <!-- Category Filter -->
@@ -78,11 +78,9 @@ $total_pages = ceil($total_products / $limit);
 
             <!-- Inventory Table -->
             <div class="bg-white p-6 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center mb-4">
+                <div class="mb-4">
                     <h3 class="text-xl font-semibold">Inventory List (<?php echo htmlspecialchars($category); ?>)</h3>
-                    <a href="add_product.php" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-                        ➕ Add Product
-                    </a>
+                    <p class="text-sm text-gray-500">This inventory is read-only. Stock levels update automatically based on customer purchases.</p>
                 </div>
                 <table class="min-w-full bg-white border border-gray-300">
                     <thead>
@@ -92,7 +90,6 @@ $total_pages = ceil($total_products / $limit);
                             <th class="p-3 text-left border-b">Quantity</th>
                             <th class="p-3 text-left border-b">Price</th>
                             <th class="p-3 text-left border-b">Image</th>
-                            <th class="p-3 text-left border-b">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -106,15 +103,11 @@ $total_pages = ceil($total_products / $limit);
                                     <td class="p-3 border-b">
                                         <img src="<?php echo htmlspecialchars($row['image_url']); ?>" alt="Product Image" class="w-16 h-16 object-cover">
                                     </td>
-                                    <td class="p-3 border-b">
-                                        <a href="edit_inventory.php?id=<?php echo $row['product_id']; ?>" class="text-blue-600 hover:underline">Edit</a>
-                                        <a href="delete_inventory.php?id=<?php echo $row['product_id']; ?>" class="text-red-600 ml-4 hover:underline">Delete</a>
-                                    </td>
                                 </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="6" class="p-3 text-center">No inventory found</td>
+                                <td colspan="5" class="p-3 text-center">No inventory found</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -136,7 +129,6 @@ $total_pages = ceil($total_products / $limit);
         </div>
     </div>
 
-    <!-- Close DB connection -->
     <?php $conn->close(); ?>
 </body>
 </html>

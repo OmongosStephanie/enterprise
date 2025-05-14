@@ -44,7 +44,7 @@ $orders = getOrderTracking($user_id);
                 <?php endif; ?>
                 <a href="cart.php" class="text-white hover:text-yellow-300 text-lg">🛒</a>
                 <a href="orders.php" class="bg-blue-600 text-white px-4 py-1 text-sm rounded-md hover:bg-blue-700 transition">View My Orders</a>
-                <a href="#" class="text-white hover:text-yellow-300 flex items-center gap-1 text-sm">
+                <a href="javascript:void(0);" onclick="openCustomerServiceModal()" class="text-white hover:text-yellow-300 flex items-center gap-1 text-sm">
                     Customer Service
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path d="m7 10 5 5 5-5"/>
@@ -53,6 +53,29 @@ $orders = getOrderTracking($user_id);
             </div>
         </div>
     </header>
+
+    <!-- Customer Service Modal -->
+    <div id="customerServiceModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg w-1/3">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Contact Customer Service</h2>
+            <form id="customerServiceForm" action="submit_inquiry.php" method="POST">
+                <textarea name="inquiry" rows="4" class="w-full p-3 border border-gray-300 rounded mb-4" placeholder="Describe your issue..." required></textarea>
+                <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition">Submit Inquiry</button>
+            </form>
+            <button onclick="closeCustomerServiceModal()" class="mt-4 text-red-600 hover:text-red-800">Close</button>
+        </div>
+    </div>
+
+    <!-- JavaScript to open/close the modal -->
+    <script>
+        function openCustomerServiceModal() {
+            document.getElementById('customerServiceModal').classList.remove('hidden');
+        }
+
+        function closeCustomerServiceModal() {
+            document.getElementById('customerServiceModal').classList.add('hidden');
+        }
+    </script>
 
     <!-- Navigation Bar -->
     <nav class="bg-gray-700 py-4 shadow-md">
@@ -71,15 +94,8 @@ $orders = getOrderTracking($user_id);
         </div>
     </nav>
 
-    <!-- Breadcrumbs -->
-    <div class="container mx-auto px-6 py-4 text-sm text-gray-500">
-        <span><a href="#" class="hover:text-yellow-300">Home</a></span> /
-        <span><a href="#" class="hover:text-yellow-300">Shop All Categories</a></span> /
-        <span>Groceries</span>
-    </div>
-
     <!-- Categories Section -->
-   <section class="container mx-auto py-6 px-4">
+    <section class="container mx-auto py-6 px-4">
         <h2 class="text-2xl font-semibold text-gray-800 mb-4">Explore Our Grocery Categories</h2>
         <div class="flex justify-center gap-8 flex-wrap">
             <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition w-64">
@@ -97,11 +113,5 @@ $orders = getOrderTracking($user_id);
         </div>
     </section>
 
-    <script>
-        function toggleOrders() {
-            const orderSection = document.getElementById('orderSection');
-            orderSection.classList.toggle('hidden');
-        }
-    </script>
 </body>
 </html>
