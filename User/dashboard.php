@@ -57,16 +57,35 @@ $orders = getOrderTracking($user_id);
     <!-- Customer Service Modal -->
     <div id="customerServiceModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center hidden">
         <div class="bg-white p-6 rounded-lg w-1/3">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Contact Customer Service</h2>
-            <form id="customerServiceForm" action="submit_inquiry.php" method="POST">
-                <textarea name="inquiry" rows="4" class="w-full p-3 border border-gray-300 rounded mb-4" placeholder="Describe your issue..." required></textarea>
-                <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition">Submit Inquiry</button>
-            </form>
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Customer Service</h2>
+            
+            <!-- Options for Customer Service -->
+            <div class="flex justify-around mb-6">
+                <button onclick="showInquiryForm()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Contact Customer Service</button>
+                <button onclick="showFeedbackForm()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Give Feedback</button>
+            </div>
+
+            <!-- Inquiry Form (Contact Customer Service) -->
+            <div id="inquiryForm" class="hidden">
+                <form id="customerServiceForm" action="submit_inquiry.php" method="POST">
+                    <textarea name="inquiry" rows="4" class="w-full p-3 border border-gray-300 rounded mb-4" placeholder="Describe your issue..." required></textarea>
+                    <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition">Submit Inquiry</button>
+                </form>
+            </div>
+
+            <!-- Feedback Form -->
+            <div id="feedbackForm" class="hidden">
+                <form id="feedbackFormSubmit" action="submit_feedback.php" method="POST">
+                    <textarea name="feedback" rows="4" class="w-full p-3 border border-gray-300 rounded mb-4" placeholder="Share your feedback..." required></textarea>
+                    <button type="submit" class="w-full bg-green-600 text-white p-3 rounded-md hover:bg-green-700 transition">Submit Feedback</button>
+                </form>
+            </div>
+            
             <button onclick="closeCustomerServiceModal()" class="mt-4 text-red-600 hover:text-red-800">Close</button>
         </div>
     </div>
 
-    <!-- JavaScript to open/close the modal -->
+    <!-- JavaScript to open/close the modal and switch forms -->
     <script>
         function openCustomerServiceModal() {
             document.getElementById('customerServiceModal').classList.remove('hidden');
@@ -74,6 +93,18 @@ $orders = getOrderTracking($user_id);
 
         function closeCustomerServiceModal() {
             document.getElementById('customerServiceModal').classList.add('hidden');
+        }
+
+        // Switch to Inquiry Form
+        function showInquiryForm() {
+            document.getElementById('inquiryForm').classList.remove('hidden');
+            document.getElementById('feedbackForm').classList.add('hidden');
+        }
+
+        // Switch to Feedback Form
+        function showFeedbackForm() {
+            document.getElementById('inquiryForm').classList.add('hidden');
+            document.getElementById('feedbackForm').classList.remove('hidden');
         }
     </script>
 
