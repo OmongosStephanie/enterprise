@@ -16,6 +16,7 @@ $orders = getOrderTracking($user_id);
 ?>
 
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -29,120 +30,63 @@ $orders = getOrderTracking($user_id);
 </head>
 <body class="bg-gray-100">
 
-    <!-- Header Section -->
-    <header class="bg-gray-800 text-white py-6 shadow-md">
-        <div class="container mx-auto flex justify-between items-center px-6">
-            <div class="logo text-3xl font-semibold text-yellow-400">S & R <span class="text-white">Online Shop</span></div>
-            <div class="search flex items-center space-x-4">
-                <input type="text" placeholder="Search for products..." class="w-64 px-4 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-r-md transition">Search</button>
-            </div>
-            <div class="flex items-center gap-6">
-                <p class="text-sm">Welcome, <?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : 'Guest'; ?>!</p>
-                <?php if (isset($_SESSION['email'])): ?>
-                    <a href="logout.php" class="text-blue-400 hover:text-blue-600">Logout</a>
-                <?php endif; ?>
-                <a href="cart.php" class="text-white hover:text-yellow-300 text-lg">🛒</a>
-                <a href="orders.php" class="bg-blue-600 text-white px-4 py-1 text-sm rounded-md hover:bg-blue-700 transition">View My Orders</a>
-                <a href="javascript:void(0);" onclick="openCustomerServiceModal()" class="text-white hover:text-yellow-300 flex items-center gap-1 text-sm">
-                    Customer Service
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path d="m7 10 5 5 5-5"/>
-                    </svg>
-                </a>
-            </div>
+<!-- Header Section -->
+<header class="bg-gray-800 text-white py-6 shadow-md">
+    <div class="container mx-auto flex justify-between items-center px-6">
+        <div class="logo text-3xl font-semibold text-yellow-400">S & R <span class="text-white">Online Shop</span></div>
+        <div class="search flex items-center space-x-4">
+            <input type="text" placeholder="Search for products..." class="w-64 px-4 py-2 rounded-l-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-r-md transition">Search</button>
         </div>
-    </header>
-
-    <!-- Customer Service Modal -->
-    <div id="customerServiceModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center hidden">
-        <div class="bg-white p-6 rounded-lg w-1/3">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Customer Service</h2>
-            
-            <!-- Options for Customer Service -->
-            <div class="flex justify-around mb-6">
-                <button onclick="showInquiryForm()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Contact Customer Service</button>
-                <button onclick="showFeedbackForm()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">Give Feedback</button>
-            </div>
-
-            <!-- Inquiry Form (Contact Customer Service) -->
-            <div id="inquiryForm" class="hidden">
-                <form id="customerServiceForm" action="submit_inquiry.php" method="POST">
-                    <textarea name="inquiry" rows="4" class="w-full p-3 border border-gray-300 rounded mb-4" placeholder="Describe your issue..." required></textarea>
-                    <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition">Submit Inquiry</button>
-                </form>
-            </div>
-
-            <!-- Feedback Form -->
-            <div id="feedbackForm" class="hidden">
-                <form id="feedbackFormSubmit" action="submit_feedback.php" method="POST">
-                    <textarea name="feedback" rows="4" class="w-full p-3 border border-gray-300 rounded mb-4" placeholder="Share your feedback..." required></textarea>
-                    <button type="submit" class="w-full bg-green-600 text-white p-3 rounded-md hover:bg-green-700 transition">Submit Feedback</button>
-                </form>
-            </div>
-            
-            <button onclick="closeCustomerServiceModal()" class="mt-4 text-red-600 hover:text-red-800">Close</button>
+        <div class="flex items-center gap-6">
+            <p class="text-sm">Welcome, <?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : 'Guest'; ?>!</p>
+            <?php if (isset($_SESSION['email'])): ?>
+                <a href="logout.php" class="text-blue-400 hover:text-blue-600">Logout</a>
+            <?php endif; ?>
+            <a href="cart.php" class="text-white hover:text-yellow-300 text-lg">🛒</a>
+            <a href="orders.php" class="bg-blue-600 text-white px-4 py-1 text-sm rounded-md hover:bg-blue-700 transition">View My Orders</a>
+            <!-- Removed Customer Service link -->
         </div>
     </div>
+</header>
 
-    <!-- JavaScript to open/close the modal and switch forms -->
-    <script>
-        function openCustomerServiceModal() {
-            document.getElementById('customerServiceModal').classList.remove('hidden');
-        }
+<!-- Removed Customer Service Modal and related scripts -->
 
-        function closeCustomerServiceModal() {
-            document.getElementById('customerServiceModal').classList.add('hidden');
-        }
+<!-- Navigation Bar -->
+<nav class="bg-gray-700 py-4 shadow-md">
+    <div class="container mx-auto px-6">
+        <ul class="flex space-x-6 text-white text-sm">
+            <li><a href="#" class="hover:text-yellow-300">Shop All Categories</a></li>
+            <li><a href="#" class="hover:text-yellow-300">Groceries</a></li>
+            <li><a href="#" class="hover:text-yellow-300">Fresh</a></li>
+            <li><a href="#" class="hover:text-yellow-300">Beer, Wine & Spirits</a></li>
+            <li><a href="#" class="hover:text-yellow-300">Personal Care</a></li>
+            <li><a href="#" class="hover:text-yellow-300">Member's Value</a></li>
+            <li><a href="#" class="hover:text-yellow-300">On Sale!</a></li>
+            <li><a href="#" class="hover:text-yellow-300">Pizza.com</a></li>
+            <li><a href="membership.php" class="hover:text-yellow-300">Membership</a></li>
+        </ul>
+    </div>
+</nav>
 
-        // Switch to Inquiry Form
-        function showInquiryForm() {
-            document.getElementById('inquiryForm').classList.remove('hidden');
-            document.getElementById('feedbackForm').classList.add('hidden');
-        }
-
-        // Switch to Feedback Form
-        function showFeedbackForm() {
-            document.getElementById('inquiryForm').classList.add('hidden');
-            document.getElementById('feedbackForm').classList.remove('hidden');
-        }
-    </script>
-
-    <!-- Navigation Bar -->
-    <nav class="bg-gray-700 py-4 shadow-md">
-        <div class="container mx-auto px-6">
-            <ul class="flex space-x-6 text-white text-sm">
-                <li><a href="#" class="hover:text-yellow-300">Shop All Categories</a></li>
-                <li><a href="#" class="hover:text-yellow-300">Groceries</a></li>
-                <li><a href="#" class="hover:text-yellow-300">Fresh</a></li>
-                <li><a href="#" class="hover:text-yellow-300">Beer, Wine & Spirits</a></li>
-                <li><a href="#" class="hover:text-yellow-300">Personal Care</a></li>
-                <li><a href="#" class="hover:text-yellow-300">Member's Value</a></li>
-                <li><a href="#" class="hover:text-yellow-300">On Sale!</a></li>
-                <li><a href="#" class="hover:text-yellow-300">Pizza.com</a></li>
-                <li><a href="membership.php" class="hover:text-yellow-300">Membership</a></li>
-            </ul>
+<!-- Categories Section -->
+<section class="container mx-auto py-6 px-4">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Explore Our Grocery Categories</h2>
+    <div class="flex justify-center gap-8 flex-wrap">
+        <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition w-64">
+            <a href="beverages.php">
+                <img src="https://imgs.search.brave.com/Ya8ons9Se8D2gLAdZuOvsyjeHRLni5KhaAqWx9_Nhzo/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA3LzUxLzE2LzE3/LzM2MF9GXzc1MTE2/MTcxMl9neEpMaDFK/NFplRlkyTTIxRDZx/R0lZeGRRWGlJU0Vh/MS5qcGc" alt="Beverages" class="rounded-md w-full h-60 object-cover mb-4">
+                <h3 class="text-center text-xl font-semibold text-gray-800">Beverages</h3>
+            </a>
         </div>
-    </nav>
-
-    <!-- Categories Section -->
-    <section class="container mx-auto py-6 px-4">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Explore Our Grocery Categories</h2>
-        <div class="flex justify-center gap-8 flex-wrap">
-            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition w-64">
-                <a href="beverages.php">
-                    <img src="https://imgs.search.brave.com/Ya8ons9Se8D2gLAdZuOvsyjeHRLni5KhaAqWx9_Nhzo/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzA3LzUxLzE2LzE3/LzM2MF9GXzc1MTE2/MTcxMl9neEpMaDFK/NFplRlkyTTIxRDZx/R0lZeGRRWGlJU0Vh/MS5qcGc" alt="Beverages" class="rounded-md w-full h-60 object-cover mb-4">
-                    <h3 class="text-center text-xl font-semibold text-gray-800">Beverages</h3>
-                </a>
-            </div>
-            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition w-64">
-                <a href="bread-and-bakery.php">
-                    <img src="https://imgs.search.brave.com/DnEDm5AVnXbBAEV7P6hqpJluOwpF4hwXEJIKLsm3Xys/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/Zm9vZGFuZHdpbmUu/Y29tL3RobWIvTWly/TVJkdlN3NU1BazdL/WFg0NXBHOGhVSFpr/PS8xNTAweDAvZmls/dGVyczpub191cHNj/YWxlKCk6bWF4X2J5/dGVzKDE1MDAwMCk6/c3RyaXBfaWNjKCkv/YmVzdC1icmVhZC1v/c29uby1GVC1CTE9H/MDIyMi1lM2U3MmY0/MTJiYzA0YThlYTMz/N2VlNzAzMTA4MTg3/NS5qcGc" alt="Bread and Bakery" class="rounded-md w-full h-60 object-cover mb-4">
-                    <h3 class="text-center text-xl font-semibold text-gray-800">Bread and Bakery</h3>
-                </a>
-            </div>
+        <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition w-64">
+            <a href="bread-and-bakery.php">
+                <img src="https://imgs.search.brave.com/DnEDm5AVnXbBAEV7P6hqpJluOwpF4hwXEJIKLsm3Xys/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/Zm9vZGFuZHdpbmUu/Y29tL3RobWIvTWly/TVJkdlN3NU1BazdL/WFg0NXBHOGhVSFpr/PS8xNTAweDAvZmls/dGVyczpub191cHNj/YWxlKCk6bWF4X2J5/dGVzKDE1MDAwMCk6/c3RyaXBfaWNjKCkv/YmVzdC1icmVhZC1v/c29uby1GVC1CTE9H/MDIyMi1lM2U3MmY0/MTJiYzA0YThlYTMz/N2VlNzAzMTA4MTg3/NS5qcGc" alt="Bread and Bakery" class="rounded-md w-full h-60 object-cover mb-4">
+                <h3 class="text-center text-xl font-semibold text-gray-800">Bread and Bakery</h3>
+            </a>
         </div>
-    </section>
+    </div>
+</section>
 
 </body>
 </html>

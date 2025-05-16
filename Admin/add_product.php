@@ -8,11 +8,11 @@ if (!isset($_SESSION['admin_logged_in'])) {
 }
 
 // Include database connection
-require_once '../includes/db.php'; // Adjust path as necessary
+require_once '../includes/db.php';
 
 // Initialize variables
-$product_name = $category = $quantity = $price = $image_url = "";
-$product_name_err = $category_err = $quantity_err = $price_err = $image_url_err = "";
+$product_name = $category = $stock = $price = $image_url = "";
+$product_name_err = $category_err = $stock_err = $price_err = $image_url_err = "";
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -29,10 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $category = $_POST['category'];
     }
 
-    if (empty($_POST['quantity']) || !is_numeric($_POST['quantity'])) {
-        $quantity_err = "Valid quantity is required.";
+    if (empty($_POST['stock']) || !is_numeric($_POST['stock'])) {
+        $stock_err = "Valid stock is required.";
     } else {
-        $quantity = $_POST['quantity'];
+        $stock = $_POST['stock'];
     }
 
     if (empty($_POST['price']) || !is_numeric($_POST['price'])) {
@@ -41,21 +41,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $price = $_POST['price'];
     }
 
-    // Handle file upload for image
-    if (isset($_FILES['image_url']) && $_FILES['image_url']['error'] == 0) {
-        $image_url = 'uploads/' . basename($_FILES['image_url']['name']);
-        if (!move_uploaded_file($_FILES['image_url']['tmp_name'], '../' . $image_url)) {
-            $image_url_err = "Failed to upload image.";
-        }
+    if (empty($_POST['image_url'])) {
+        $image_url_err = "Image URL is required.";
     } else {
-        $image_url_err = "Product image is required.";
+        $image_url = $_POST['image_url'];
     }
 
     // Insert product into database if there are no errors
-    if (empty($product_name_err) && empty($category_err) && empty($quantity_err) && empty($price_err) && empty($image_url_err)) {
-        $sql = "INSERT INTO inventory (product_name, category, quantity, price, image_url) VALUES (?, ?, ?, ?, ?)";
+    if (empty($product_name_err) && empty($category_err) && empty($stock_err) && empty($price_err) && empty($image_url_err)) {
+        $sql = "INSERT INTO inventory (product_name, category, stock, price, image_url) VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssids", $product_name, $category, $quantity, $price, $image_url);
+        $stmt->bind_param("ssids", $product_name, $category, $stock, $price, $image_url);
         if ($stmt->execute()) {
             header('Location: update_inventory.php'); // Redirect to inventory management page
             exit();
@@ -80,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <h2 class="text-2xl font-semibold mb-6 text-center">Add New Product</h2>
 
             <!-- Form -->
-            <form action="add_product.php" method="POST" enctype="multipart/form-data">
+            <form action="add_product.php" method="POST">
                 <!-- Product Name -->
                 <div class="mb-4">
                     <label for="product_name" class="block text-gray-700">Product Name</label>
@@ -92,33 +88,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="mb-4">
                     <label for="category" class="block text-gray-700">Category</label>
                     <select name="category" id="category" class="w-full p-3 border border-gray-300 rounded">
+                        <option value="">-- Select Category --</option>
                         <option value="Beverages" <?php echo ($category == 'Beverages') ? 'selected' : ''; ?>>Beverages</option>
                         <option value="Bread and Bakery" <?php echo ($category == 'Bread and Bakery') ? 'selected' : ''; ?>>Bread and Bakery</option>
-                        <!-- Add more categories as needed -->
+                        <option value="Pantry Items" <?php echo ($category == 'Pantry Items') ? 'selected' : ''; ?>>Pantry Items</option>
+                        <option value="Eggs and Chilled Products" <?php echo ($category == 'Eggs and Chilled Products') ? 'selected' : ''; ?>>Eggs and Chilled Products</option>
+                        <option value="Fresh Meat Produce and Seafood" <?php echo ($category == 'Fresh Meat Produce and Seafood') ? 'selected' : ''; ?>>Fresh Meat Produce and Seafood</option>
+                        <option value="Frozen Products" <?php echo ($category == 'Frozen Products') ? 'selected' : ''; ?>>Frozen Products</option>
                     </select>
                     <span class="text-red-500 text-sm"><?php echo $category_err; ?></span>
                 </div>
 
-                <!-- Quantity -->
+                <!-- Stock -->
                 <div class="mb-4">
-                    <label for="quantity" class="block text-gray-700">Quantity</label>
-                    <input type="number" name="quantity" id="quantity" class="w-full p-3 border border-gray-300 rounded" value="<?php echo htmlspecialchars($quantity); ?>" placeholder="Enter quantity">
-                    <span class="text-red-500 text-sm"><?php echo $quantity_err; ?></span>
+                    <label for="stock" class="block text-gray-700">Stock</label>
+                    <input type="number" name="stock" id="stock" class="w-full p-3 border border-gray-300 rounded" value="<?php echo htmlspecialchars($stock); ?>" placeholder="Enter stock">
+                    <span class="text-red-500 text-sm"><?php echo $stock_err; ?></span>
                 </div>
 
                 <!-- Price -->
                 <div class="mb-4">
                     <label for="price" class="block text-gray-700">Price</label>
-                    <input type="number" name="price" id="price" class="w-full p-3 border border-gray-300 rounded" value="<?php echo htmlspecialchars($price); ?>" placeholder="Enter price">
+                    <input type="number" step="0.01" name="price" id="price" class="w-full p-3 border border-gray-300 rounded" value="<?php echo htmlspecialchars($price); ?>" placeholder="Enter price">
                     <span class="text-red-500 text-sm"><?php echo $price_err; ?></span>
                 </div>
 
-                <!-- Product Image -->
+                <!-- Image URL -->
                 <div class="mb-4">
-                    <label for="image_url" class="block text-gray-700">Product Image</label>
-                    <input type="file" name="image_url" id="image_url" class="w-full p-3 border border-gray-300 rounded">
+                    <label for="image_url" class="block text-gray-700">Product Image URL</label>
+                    <input type="text" name="image_url" id="image_url" class="w-full p-3 border border-gray-300 rounded" value="<?php echo htmlspecialchars($image_url); ?>" placeholder="Enter image URL">
                     <span class="text-red-500 text-sm"><?php echo $image_url_err; ?></span>
                 </div>
+
+                <!-- Image Preview -->
+                <?php if (!empty($image_url)): ?>
+                <div class="mb-4 text-center">
+                    <img src="<?php echo htmlspecialchars($image_url); ?>" alt="Preview" class="mx-auto max-h-40 object-contain border rounded">
+                </div>
+                <?php endif; ?>
 
                 <!-- Submit Button -->
                 <div class="mb-4">

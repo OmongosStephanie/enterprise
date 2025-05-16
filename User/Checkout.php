@@ -1,134 +1,241 @@
 <?php
 session_start();
+require_once '../includes/db.php';
 
-$items = $_POST['items'] ?? [];
+// Redirect if cart is empty
+if (empty($_SESSION['cart'])) {
+    header('Location: cart.php');
+    exit;
+}
 
-$total = 0;
+// Make sure user is logged in for order linking
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+$error = '';
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $branch = trim($_POST['branch'] ?? '');
+    $location = trim($_POST['location'] ?? '');
+
+    if (!$name || !$email || !$branch || !$location) {
+        $error = "Please fill in all required fields.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Please enter a valid email address.";
+    } else {
+        $cart_items = $_SESSION['cart'];
+
+        // Calculate total
+        $total = 0;
+        foreach ($cart_items as $product_id => $item) {
+            $total += $item['product_price'] * $item['quantity'];
+        }
+
+        // Start transaction
+        $conn->begin_transaction();
+
+        try {
+            // Insert into orders table
+            $stmt_order = $conn->prepare("INSERT INTO orders (user_id, fullname, email, branch, location, total, created_at, status) VALUES (?, ?, ?, ?, ?, ?, NOW(), 'pending')");
+            $stmt_order->bind_param("issssd", $_SESSION['user_id'], $name, $email, $branch, $location, $total);
+            $stmt_order->execute();
+
+            if ($stmt_order->affected_rows == 0) {
+                throw new Exception("Failed to create order.");
+            }
+
+            $order_id = $stmt_order->insert_id;
+            $stmt_order->close();
+
+            // Prepare statements for inserting order items and updating stock
+            $stmt_item = $conn->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+            $stmt_update_stock = $conn->prepare("UPDATE inventory SET stock = stock - ? WHERE product_id = ? AND stock >= ?");
+
+            foreach ($cart_items as $product_id => $item) {
+                $quantity = $item['quantity'];
+                $price = $item['product_price'];
+
+                // Insert order item
+                $stmt_item->bind_param("iiid", $order_id, $product_id, $quantity, $price);
+                $stmt_item->execute();
+                if ($stmt_item->affected_rows == 0) {
+                    throw new Exception("Failed to add product $product_id to order.");
+                }
+
+                // Update inventory stock (only if enough stock exists)
+                $stmt_update_stock->bind_param("iii", $quantity, $product_id, $quantity);
+                $stmt_update_stock->execute();
+                if ($stmt_update_stock->affected_rows == 0) {
+                    throw new Exception("Insufficient stock for product ID: $product_id");
+                }
+            }
+
+            $stmt_item->close();
+            $stmt_update_stock->close();
+
+            // Commit transaction
+            $conn->commit();
+
+            // Clear cart and success message
+            $_SESSION['cart'] = [];
+            $success = "Thank you, your order has been placed! Your Order ID is $order_id";
+
+        } catch (Exception $e) {
+            $conn->rollback();
+            $error = "Order failed: " . $e->getMessage();
+        }
+    }
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Checkout - S&R</title>
+    <meta charset="UTF-8" />
+    <title>Checkout - S&R Online Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 font-sans p-6">
-    <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
-        <h1 class="text-2xl font-bold mb-4">Checkout Summary</h1>
-
-        <?php if (empty($items)): ?>
-            <p>No items selected. <a href="cart.php" class="text-blue-600 underline">Go back to cart</a>.</p>
-        <?php else: ?>
-            <form method="POST" action="place_order.php">
-                <table class="w-full mb-4">
-                    <thead>
-                        <tr class="bg-gray-200 text-left">
-                            <th class="p-2">Product</th>
-                            <th class="p-2">Price</th>
-                            <th class="p-2">Quantity</th>
-                            <th class="p-2">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($items as $index => $item): 
-                            $name = htmlspecialchars($item['name']);
-                            $price = floatval($item['price']);
-                            $quantity = intval($item['quantity']);
-                            $subtotal = $price * $quantity;
-                            $total += $subtotal;
-                        ?>
-                            <tr class="border-b">
-                                <td class="p-2"><?= $name ?></td>
-                                <td class="p-2">₱<?= number_format($price, 2) ?></td>
-                                <td class="p-2"><?= $quantity ?></td>
-                                <td class="p-2">₱<?= number_format($subtotal, 2) ?></td>
-                            </tr>
-                            <!-- Hidden inputs for each item -->
-                            <input type="hidden" name="items[<?= $index ?>][name]" value="<?= $name ?>">
-                            <input type="hidden" name="items[<?= $index ?>][price]" value="<?= $price ?>">
-                            <input type="hidden" name="items[<?= $index ?>][quantity]" value="<?= $quantity ?>">
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-
-                <p class="font-semibold text-lg mb-6">Total Amount: ₱<?= number_format($total, 2) ?></p>
-
-                <!-- Customer Info -->
-                <div class="mb-6">
-                    <label class="block mb-2 font-medium" for="fullname">Full Name:</label>
-                    <input type="text" name="fullname" id="fullname" required 
-                           class="w-full p-2 border border-gray-300 rounded" placeholder="Enter your full name">
-                </div>
-
-                <!-- Branch Selection -->
-                <div class="mb-6">
-                    <label class="block mb-2 font-medium" for="branch">Select Branch:</label>
-                    <select name="branch" id="branch" required class="w-full p-2 border border-gray-300 rounded" onchange="updateLocations()">
-                        <option value="Dahilayan">Dahilayan</option>
-                        <option value="Manolo">Manolo</option>
-                    </select>
-                </div>
-
-                <!-- Location Selection based on Branch -->
-                <div class="mb-6">
-                    <label class="block mb-2 font-medium" for="location">Select Location:</label>
-                    <select name="location" id="location" required class="w-full p-2 border border-gray-300 rounded">
-                        <option value="">Select a location</option>
-                    </select>
-                </div>
-
-                <!-- Street Address -->
-                <div class="mb-6">
-                    <label class="block mb-2 font-medium" for="street">Enter Street Address:</label>
-                    <input type="text" name="street" id="street" required class="w-full p-2 border border-gray-300 rounded" placeholder="Enter street address">
-                </div>
-
-                <div class="flex justify-between">
-                    <a href="cart.php" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">← Back to Cart</a>
-                    <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600">Place Order</button>
-                </div>
-            </form>
-        <?php endif; ?>
+<body class="bg-gray-100">
+<header class="bg-gray-800 text-white py-4">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">S & R Online Shop</h1>
+        <a href="cart.php" class="bg-yellow-400 text-gray-800 px-4 py-2 rounded hover:bg-yellow-500">Back to Cart</a>
     </div>
+</header>
 
-    <script>
-        // Locations near Dahilayan and Manolo
-        const locations = {
-            Dahilayan: [
-                "Dahilayan Forest Park",
-                "Dahilayan Adventure Park",
-                "Del Monte Pineapple Plantation",
-                "Alomah's Place",
-                "Kalugmanan",
-                "Mampayag"
-            ],
-            Manolo: [
-                "Manolo Fortich Market",
-                "Camp Phillips",
-                "Northern Bukidnon State College",
-                "lingion",
-                "San Miguel",
-                "Dicklum"
-            ]
-        };
+<main class="container mx-auto px-4 py-8 max-w-3xl">
+    <h2 class="text-3xl font-semibold mb-6">Checkout</h2>
 
-        // Update location options based on the selected branch
-        function updateLocations() {
-            const branch = document.getElementById("branch").value;
-            const locationSelect = document.getElementById("location");
-            locationSelect.innerHTML = "<option value=''>Select a location</option>"; // Reset options
+    <?php if ($error): ?>
+        <div class="bg-red-200 text-red-800 p-4 mb-4 rounded"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
 
-            const branchLocations = locations[branch] || [];
-            branchLocations.forEach(location => {
-                const option = document.createElement("option");
-                option.value = location;
-                option.textContent = location;
-                locationSelect.appendChild(option);
-            });
-        }
+    <?php if ($success): ?>
+        <div class="bg-green-200 text-green-800 p-4 mb-4 rounded"><?= htmlspecialchars($success) ?></div>
+        <a href="dashboard.php" class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700">Continue Shopping</a>
+    <?php else: ?>
+        <section class="mb-8">
+            <h3 class="text-xl font-semibold mb-4">Order Summary</h3>
+            <table class="min-w-full bg-white rounded shadow mb-6">
+                <thead>
+                    <tr>
+                        <th class="px-6 py-3 border-b text-left">Product</th>
+                        <th class="px-6 py-3 border-b text-right">Price</th>
+                        <th class="px-6 py-3 border-b text-center">Quantity</th>
+                        <th class="px-6 py-3 border-b text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $total = 0;
+                    foreach ($_SESSION['cart'] as $product_id => $item):
+                        $stmt = $conn->prepare("SELECT product_name, price FROM inventory WHERE product_id = ?");
+                        $stmt->bind_param("i", $product_id);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $product = $result->fetch_assoc();
+                        $stmt->close();
 
-        // Initial location update on page load
-        window.onload = updateLocations;
-    </script>
+                        $name = $product['product_name'] ?? 'Unknown';
+                        $price = floatval($product['price'] ?? 0);
+                        $qty = intval($item['quantity']);
+                        $subtotal = $price * $qty;
+                        $total += $subtotal;
+                    ?>
+                    <tr>
+                        <td class="px-6 py-4 border-b"><?= htmlspecialchars($name) ?></td>
+                        <td class="px-6 py-4 border-b text-right">₱<?= number_format($price, 2) ?></td>
+                        <td class="px-6 py-4 border-b text-center"><?= $qty ?></td>
+                        <td class="px-6 py-4 border-b text-right">₱<?= number_format($subtotal, 2) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="px-6 py-4 text-right font-semibold text-lg">Total:</td>
+                        <td class="px-6 py-4 text-right font-bold text-xl">₱<?= number_format($total, 2) ?></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </section>
+
+        <section>
+            <h3 class="text-xl font-semibold mb-4">Your Details</h3>
+            <form method="post" class="bg-white p-6 rounded shadow space-y-4">
+                <div>
+                    <label for="name" class="block font-semibold mb-1">Name *</label>
+                    <input type="text" id="name" name="name" required class="w-full p-2 border rounded" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>" />
+                </div>
+                <div>
+                    <label for="email" class="block font-semibold mb-1">Email *</label>
+                    <input type="email" id="email" name="email" required class="w-full p-2 border rounded" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" />
+                </div>
+                <div>
+                    <label for="branch" class="block font-semibold mb-1">Select Branch *</label>
+                    <select name="branch" id="branch" required class="w-full p-2 border rounded" onchange="updateLocations()">
+                        <option value="">-- Select Branch --</option>
+                        <option value="Dahilayan" <?= (($_POST['branch'] ?? '') === 'Dahilayan') ? 'selected' : '' ?>>Dahilayan</option>
+                        <option value="Manolo" <?= (($_POST['branch'] ?? '') === 'Manolo') ? 'selected' : '' ?>>Manolo</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="location" class="block font-semibold mb-1">Select Location *</label>
+                    <select name="location" id="location" required class="w-full p-2 border rounded">
+                        <option value="">-- Select Location --</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-green-600 text-white px-6 py-3 rounded hover:bg-green-700">Place Order</button>
+            </form>
+        </section>
+
+        <script>
+            const locations = {
+                Dahilayan: [
+                    "Dahilayan Forest Park",
+                    "Dahilayan Adventure Park",
+                    "Del Monte Pineapple Plantation",
+                    "Alomah's Place",
+                    "Kalugmanan",
+                    "Mampayag"
+                ],
+                Manolo: [
+                    "Manolo Fortich Market",
+                    "Camp Phillips",
+                    "Northern Bukidnon State College",
+                    "Lingion",
+                    "San Miguel",
+                    "Dicklum"
+                ]
+            };
+
+            function updateLocations() {
+                const branch = document.getElementById("branch").value;
+                const locationSelect = document.getElementById("location");
+                locationSelect.innerHTML = '<option value="">-- Select Location --</option>';
+
+                if (locations[branch]) {
+                    locations[branch].forEach(loc => {
+                        const option = document.createElement("option");
+                        option.value = loc;
+                        option.textContent = loc;
+                        if (loc === "<?= addslashes($_POST['location'] ?? '') ?>") {
+                            option.selected = true;
+                        }
+                        locationSelect.appendChild(option);
+                    });
+                }
+            }
+
+            window.onload = updateLocations;
+        </script>
+    <?php endif; ?>
+</main>
 </body>
 </html>
+
+<?php $conn->close(); ?>

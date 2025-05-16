@@ -13,7 +13,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch orders including delivered_date and delivery_person
+// Fetch orders
 $stmt = $conn->prepare("SELECT id, fullname, branch, location, street, total, created_at, status, delivered_date, delivery_person FROM orders WHERE user_id = ? ORDER BY created_at DESC");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -40,7 +40,6 @@ $result = $stmt->get_result();
                             <th class="px-6 py-3">Full Name</th>
                             <th class="px-6 py-3">Branch</th>
                             <th class="px-6 py-3">Location</th>
-                            <th class="px-6 py-3">Street</th>
                             <th class="px-6 py-3">Total (₱)</th>
                             <th class="px-6 py-3">Date</th>
                             <th class="px-6 py-3">Delivered Date</th>
@@ -55,7 +54,6 @@ $result = $stmt->get_result();
                                 <td class="px-6 py-4"><?php echo htmlspecialchars($row['fullname']); ?></td>
                                 <td class="px-6 py-4"><?php echo htmlspecialchars($row['branch']); ?></td>
                                 <td class="px-6 py-4"><?php echo htmlspecialchars($row['location']); ?></td>
-                                <td class="px-6 py-4"><?php echo htmlspecialchars($row['street']); ?></td>
                                 <td class="px-6 py-4 font-semibold">₱<?php echo number_format($row['total'], 2); ?></td>
                                 <td class="px-6 py-4 text-sm text-gray-500"><?php echo date('M d, Y', strtotime($row['created_at'])); ?></td>
                                 <td class="px-6 py-4 text-sm text-gray-500">
@@ -77,33 +75,29 @@ $result = $stmt->get_result();
                                             echo "<span class='text-yellow-500 font-semibold capitalize'>Pending</span>";
                                         } elseif ($status == 'delivered') {
                                             echo "<span class='text-green-500 font-semibold capitalize'>Delivered</span>";
-                                        } else {
-                                            echo "<span class='text-gray-500 capitalize'>Unknown</span>";
-                                        }
-                                    ?>
-                                    <br>
-                                    <a href="order_details.php?id=<?php echo $row['id']; ?>" class="mt-2 inline-block text-sm text-blue-600 hover:underline">View Details</a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="bg-white p-6 rounded-lg shadow text-center text-gray-600">
-                <p>You haven’t placed any orders yet.</p>
-                <a href="dashboard.php" class="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Start Shopping</a>
-            </div>
-        <?php endif; ?>
+                                        } elseif ($status == 'completed') {
+                                            echo "<span class='text-green-500 font-semibold capitalize'>Completed</span>";
 
-        <div class="mt-6 text-center">
-            <a href="dashboard.php" class="text-blue-500 hover:underline">&larr; Back to Dashboard</a>
-        </div>
-    </div>
-</body>
-</html>
-
-<?php
-$stmt->close();
-$conn->close();
+                                          
+} elseif ($status == 'cancelled') {
+echo "<span class='text-red-500 font-semibold capitalize'>Cancelled</span>";
+} else {
+echo "<span class='capitalize'>{$row['status']}</span>";
+}
 ?>
+</td>
+</tr>
+<?php endwhile; ?>
+</tbody>
+</table>
+</div>
+<?php else: ?>
+<p class="text-center text-gray-600">You have no orders yet.</p>
+<?php endif; ?>
+
+    <?php
+    $stmt->close();
+    $conn->close();
+    ?>
+</div>
+</body> </html> 

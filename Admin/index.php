@@ -126,7 +126,7 @@
     <section class="hero">
         <h1>Welcome to Our Platform</h1>
         <p>Your one-stop solution for everything you need.</p>
-        <button onclick="window.location.href='signup.php'">Get Started</button>
+        <button onclick="window.location.href='login.php'">Get Started</button>
     </section>
 
     <!-- Features Section -->
@@ -143,13 +143,6 @@
             <h3>Secure & Reliable</h3>
             <p>Your data security is our top priority, and we guarantee reliability.</p>
         </div>
-    </section>
-
-    <!-- Call to Action Section -->
-    <section class="cta">
-        <h2>Ready to take the next step?</h2>
-        <p>Join thousands of happy users today and get started with our platform!</p>
-        <button onclick="window.location.href='signup.php'">Sign Up Now</button>
     </section>
 
     <!-- Footer -->

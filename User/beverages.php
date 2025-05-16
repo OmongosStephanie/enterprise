@@ -7,8 +7,11 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
 // Fetch Beverages from Inventory
-$sql = "SELECT * FROM inventory WHERE category = 'Beverages' LIMIT $limit OFFSET $offset";
-$result = $conn->query($sql);
+$sql = "SELECT * FROM inventory WHERE category = 'Beverages' LIMIT ? OFFSET ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ii", $limit, $offset);
+$stmt->execute();
+$result = $stmt->get_result();
 if (!$result) {
     die("Error fetching data: " . $conn->error);
 }
@@ -129,15 +132,15 @@ $total_pages = ceil($total_products / $limit);
                             <img src="<?= htmlspecialchars($row['image_url']) ?>" alt="Product" class="w-28 h-28 object-cover mb-4 rounded-md">
                             <h3 class="text-lg font-semibold text-gray-900"><?= htmlspecialchars($row['product_name']) ?></h3>
                             <p class="text-blue-600 font-bold text-lg mt-1">₱<?= number_format($row['price'], 2) ?></p>
-                            <p class="text-sm text-gray-500 mb-4">In stock: <?= $row['quantity'] ?></p>
+                            <p class="text-sm text-gray-500 mb-4">In stock: <?= $row['stock'] ?></p>
 
-                            <?php if ($row['quantity'] > 0): ?>
+                            <?php if ($row['stock'] > 0): ?>
                                 <button 
                                     onclick="openCartModal(
                                         '<?= $row['product_id'] ?>', 
                                         '<?= htmlspecialchars($row['product_name']) ?>', 
                                         '<?= $row['price'] ?>', 
-                                        <?= $row['quantity'] ?>
+                                        <?= $row['stock'] ?>
                                     )"
                                     class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md transition"
                                 >

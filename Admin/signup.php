@@ -11,7 +11,7 @@ if (isset($_POST['signup'])) {
         $error = "Passwords do not match.";
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $query = "SELECT * FROM admins WHERE username = '$username' LIMIT 1";
+        $query = "SELECT * FROM admins WHERE username = '$username' LIMIT 2";
         $result = mysqli_query($conn, $query);
 
         if ($result && mysqli_num_rows($result) > 0) {
