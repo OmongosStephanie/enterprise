@@ -12,7 +12,8 @@ include '../includes/db.php';
 $status_counts = [
     'pending' => 0,
     'delivered' => 0,
-    'completed' => 0
+    'completed' => 0,
+    'cancelled' => 0
 ];
 
 $sql = "SELECT status, COUNT(*) as count FROM orders GROUP BY status";
@@ -73,6 +74,7 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
             <li><a href="dashboard.php" class="text-lg py-2 block">Dashboard</a></li>
             <li><a href="staff_financial.php" class="text-lg py-2 block bg-gray-700 rounded">Financial Reports</a></li>
             <li><a href="payments.php" class="text-lg py-2 block">Customer Orders</a></li>
+            <li><a href="rider.php" class="text-lg py-2 block">Riders</a></li>
             <li><a href="logout.php" class="text-lg py-2 block mt-4 text-red-500">Logout</a></li>
         </ul>
     </div>
@@ -106,8 +108,13 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
                 </div>
             </div>
         </div>
-    </div>
 
+        <div class="bg-red-100 p-4 rounded shadow mt-6">
+            <h3 class="text-xl font-bold text-red-700 mb-2">Cancelled Orders</h3>
+            <p class="text-2xl font-bold text-red-600"><?php echo $status_counts['cancelled']; ?> order(s)</p>
+        </div>
+
+    </div>
 </div>
 
 <script>
@@ -115,23 +122,26 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
     const statusChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Pending', 'Delivered', 'Completed'],
+            labels: ['Pending', 'Delivered', 'Completed', 'Cancelled'],
             datasets: [{
                 label: 'Number of Orders',
                 data: [
                     <?php echo $status_counts['pending']; ?>,
                     <?php echo $status_counts['delivered']; ?>,
-                    <?php echo $status_counts['completed']; ?>
+                    <?php echo $status_counts['completed']; ?>,
+                    <?php echo $status_counts['cancelled']; ?>
                 ],
                 backgroundColor: [
                     '#facc15', // yellow
                     '#3b82f6', // blue
-                    '#10b981'  // green
+                    '#10b981', // green
+                    '#ef4444'  // red
                 ],
                 borderColor: [
                     '#eab308',
                     '#2563eb',
-                    '#059669'
+                    '#059669',
+                    '#dc2626'
                 ],
                 borderWidth: 1
             }]
@@ -140,7 +150,6 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: 100,
                     ticks: {
                         stepSize: 1
                     }
@@ -149,7 +158,6 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
         }
     });
 </script>
-
 
 </body>
 </html>

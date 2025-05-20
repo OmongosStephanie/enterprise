@@ -13,8 +13,16 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch orders
-$stmt = $conn->prepare("SELECT id, fullname, branch, location, street, total, created_at, status, delivered_date, delivery_person FROM orders WHERE user_id = ? ORDER BY created_at DESC");
+// Fetch orders with rider contact by joining riders table
+$stmt = $conn->prepare("
+    SELECT 
+        o.id, o.fullname, o.branch, o.location, o.street, o.total, o.created_at, o.status, o.delivered_date, o.delivery_person,
+        r.contact AS contact_number
+    FROM orders o
+    LEFT JOIN riders r ON o.delivery_person = r.name
+    WHERE o.user_id = ?
+    ORDER BY o.created_at DESC
+");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -45,6 +53,7 @@ $result = $stmt->get_result();
                             <th class="px-6 py-3">Delivered Date</th>
                             <th class="px-6 py-3">Delivery Person</th>
                             <th class="px-6 py-3">Order Status</th>
+                            <th class="px-6 py-3">Action</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-700">
@@ -65,8 +74,17 @@ $result = $stmt->get_result();
                                         }
                                     ?>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-500">
-                                    <?php echo htmlspecialchars($row['delivery_person']) ?: "<span class='text-gray-500'>Not Assigned</span>"; ?>
+                                <td class="px-6 py-4 text-sm">
+                                    <?php 
+                                        if ($row['delivery_person']) {
+                                            echo htmlspecialchars($row['delivery_person']);
+                                            if ($row['contact_number']) {
+                                                echo " <span class='text-gray-500'>(☎ " . htmlspecialchars($row['contact_number']) . ")</span>";
+                                            }
+                                        } else {
+                                            echo "<span class='text-gray-500 italic'>Not Assigned</span>";
+                                        }
+                                    ?>
                                 </td>
                                 <td class="px-6 py-4">
                                     <?php 
@@ -77,27 +95,43 @@ $result = $stmt->get_result();
                                             echo "<span class='text-green-500 font-semibold capitalize'>Delivered</span>";
                                         } elseif ($status == 'completed') {
                                             echo "<span class='text-green-500 font-semibold capitalize'>Completed</span>";
+                                        } elseif ($status == 'cancelled') {
+                                            echo "<span class='text-red-500 font-semibold capitalize'>Cancelled</span>";
+                                        } else {
+                                            echo "<span class='capitalize'>{$row['status']}</span>";
+                                        }
+                                    ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php if ($status == 'pending'): ?>
+                                        <form action="cancel_order.php" method="POST" onsubmit="return confirm('Are you sure you want to cancel this order?');">
+                                            <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">
+                                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm">Cancel</button>
+                                        </form>
+                                    <?php else: ?>
+                                        <span class="text-gray-400 text-sm">N/A</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <p class="text-center text-gray-600">You have no orders yet.</p>
+        <?php endif; ?>
 
-                                          
-} elseif ($status == 'cancelled') {
-echo "<span class='text-red-500 font-semibold capitalize'>Cancelled</span>";
-} else {
-echo "<span class='capitalize'>{$row['status']}</span>";
-}
-?>
-</td>
-</tr>
-<?php endwhile; ?>
-</tbody>
-</table>
-</div>
-<?php else: ?>
-<p class="text-center text-gray-600">You have no orders yet.</p>
-<?php endif; ?>
+        <!-- Back button -->
+        <div class="mt-6 text-center">
+            <a href="dashboard.php" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-2 rounded">
+                ← Back to Dashboard
+            </a>
+        </div>
 
-    <?php
-    $stmt->close();
-    $conn->close();
-    ?>
-</div>
-</body> </html> 
+        <?php
+        $stmt->close();
+        $conn->close();
+        ?>
+    </div>
+</body>
+</html>

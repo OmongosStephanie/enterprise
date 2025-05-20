@@ -47,17 +47,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $image_url = $_POST['image_url'];
     }
 
-    // Insert product into database if there are no errors
+    // Check for duplicate product name
     if (empty($product_name_err) && empty($category_err) && empty($stock_err) && empty($price_err) && empty($image_url_err)) {
-        $sql = "INSERT INTO inventory (product_name, category, stock, price, image_url) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssids", $product_name, $category, $stock, $price, $image_url);
-        if ($stmt->execute()) {
-            header('Location: update_inventory.php'); // Redirect to inventory management page
-            exit();
+        $check_sql = "SELECT product_id FROM inventory WHERE product_name = ?";
+        $check_stmt = $conn->prepare($check_sql);
+        $check_stmt->bind_param("s", $product_name);
+        $check_stmt->execute();
+        $check_stmt->store_result();
+
+        if ($check_stmt->num_rows > 0) {
+            $product_name_err = "Product name already exists in the inventory.";
         } else {
-            echo "Error adding product: " . $conn->error;
+            // Insert product into database
+            $sql = "INSERT INTO inventory (product_name, category, stock, price, image_url) VALUES (?, ?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssids", $product_name, $category, $stock, $price, $image_url);
+            if ($stmt->execute()) {
+                header('Location: update_inventory.php');
+                exit();
+            } else {
+                echo "Error adding product: " . $conn->error;
+            }
         }
+
+        $check_stmt->close();
     }
 }
 ?>

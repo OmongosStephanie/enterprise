@@ -14,18 +14,27 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Fetch logged-in user's fullname and email
+// *** CHANGE 'fullname' below if your column name differs ***
+$stmt_user = $conn->prepare("SELECT first_name, email FROM users WHERE id = ?");
+$stmt_user->bind_param("i", $_SESSION['user_id']);
+$stmt_user->execute();
+$stmt_user->bind_result($first_name, $email);
+$stmt_user->fetch();
+$stmt_user->close();
+
 $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
+    $email_post = trim($_POST['email'] ?? '');
     $branch = trim($_POST['branch'] ?? '');
     $location = trim($_POST['location'] ?? '');
 
-    if (!$name || !$email || !$branch || !$location) {
+    if (!$name || !$email_post || !$branch || !$location) {
         $error = "Please fill in all required fields.";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    } elseif (!filter_var($email_post, FILTER_VALIDATE_EMAIL)) {
         $error = "Please enter a valid email address.";
     } else {
         $cart_items = $_SESSION['cart'];
@@ -42,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             // Insert into orders table
             $stmt_order = $conn->prepare("INSERT INTO orders (user_id, fullname, email, branch, location, total, created_at, status) VALUES (?, ?, ?, ?, ?, ?, NOW(), 'pending')");
-            $stmt_order->bind_param("issssd", $_SESSION['user_id'], $name, $email, $branch, $location, $total);
+            $stmt_order->bind_param("issssd", $_SESSION['user_id'], $name, $email_post, $branch, $location, $total);
             $stmt_order->execute();
 
             if ($stmt_order->affected_rows == 0) {
@@ -132,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </thead>
                 <tbody>
                     <?php
-                    $total = 0;
+                    $total_display = 0;
                     foreach ($_SESSION['cart'] as $product_id => $item):
                         $stmt = $conn->prepare("SELECT product_name, price FROM inventory WHERE product_id = ?");
                         $stmt->bind_param("i", $product_id);
@@ -145,7 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $price = floatval($product['price'] ?? 0);
                         $qty = intval($item['quantity']);
                         $subtotal = $price * $qty;
-                        $total += $subtotal;
+                        $total_display += $subtotal;
                     ?>
                     <tr>
                         <td class="px-6 py-4 border-b"><?= htmlspecialchars($name) ?></td>
@@ -158,7 +167,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <tfoot>
                     <tr>
                         <td colspan="3" class="px-6 py-4 text-right font-semibold text-lg">Total:</td>
-                        <td class="px-6 py-4 text-right font-bold text-xl">₱<?= number_format($total, 2) ?></td>
+                        <td class="px-6 py-4 text-right font-bold text-xl">₱<?= number_format($total_display, 2) ?></td>
                     </tr>
                 </tfoot>
             </table>
@@ -169,11 +178,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="post" class="bg-white p-6 rounded shadow space-y-4">
                 <div>
                     <label for="name" class="block font-semibold mb-1">Name *</label>
-                    <input type="text" id="name" name="name" required class="w-full p-2 border rounded" value="<?= htmlspecialchars($_POST['name'] ?? '') ?>" />
+                    <input type="text" id="name" name="name" required class="w-full p-2 border rounded" value="<?= htmlspecialchars($_POST['name'] ?? $first_name) ?>" />
                 </div>
                 <div>
                     <label for="email" class="block font-semibold mb-1">Email *</label>
-                    <input type="email" id="email" name="email" required class="w-full p-2 border rounded" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>" />
+                    <input type="email" id="email" name="email" required class="w-full p-2 border rounded" value="<?= htmlspecialchars($_POST['email'] ?? $email) ?>" />
                 </div>
                 <div>
                     <label for="branch" class="block font-semibold mb-1">Select Branch *</label>
@@ -220,22 +229,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (locations[branch]) {
                     locations[branch].forEach(loc => {
-                        const option = document.createElement("option");
+                        const option = document.createElement('option');
                         option.value = loc;
                         option.textContent = loc;
-                        if (loc === "<?= addslashes($_POST['location'] ?? '') ?>") {
-                            option.selected = true;
-                        }
                         locationSelect.appendChild(option);
                     });
                 }
+
+                // Retain previously selected location after reload
+                const prevLocation = "<?= htmlspecialchars($_POST['location'] ?? '') ?>";
+                if (prevLocation) {
+                    locationSelect.value = prevLocation;
+                }
             }
 
-            window.onload = updateLocations;
+            // Populate location select on page load if branch selected
+            document.addEventListener('DOMContentLoaded', () => {
+                updateLocations();
+            });
         </script>
     <?php endif; ?>
 </main>
+
+<footer class="bg-gray-800 text-white text-center py-4 mt-12">
+    &copy; <?= date('Y') ?> S & R Online Shop
+</footer>
 </body>
 </html>
-
-<?php $conn->close(); ?>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 15, 2025 at 05:31 PM
+-- Generation Time: May 20, 2025 at 05:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -40,7 +40,7 @@ CREATE TABLE `admins` (
 --
 
 INSERT INTO `admins` (`id`, `username`, `email`, `password`, `created_at`) VALUES
-(1, 'luna', '', '$2y$10$v5TyzLIsyJ3CqmKRBWShduJFuKjF1F.9n7rhacA/dh.7YOOLBbbaO', '2025-05-08 15:58:33');
+(5, 'Admin', '', '$2y$10$2QL/eYTlpkhQrIZGkxv2hO1HX.kKWbwC5npE30KPdfh0pwq04tQPW', '2025-05-16 01:46:00');
 
 -- --------------------------------------------------------
 
@@ -99,6 +99,39 @@ CREATE TABLE `customer_service_inquiries` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `customer_service_posts`
+--
+
+CREATE TABLE `customer_service_posts` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `content` text NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `feedback`
+--
+
+CREATE TABLE `feedback` (
+  `id` int(11) NOT NULL,
+  `customer_name` varchar(100) NOT NULL,
+  `message` text NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `feedback`
+--
+
+INSERT INTO `feedback` (`id`, `customer_name`, `message`, `created_at`) VALUES
+(1, 'user@gmail.com', 'jduihuhd', '2025-05-16 10:55:27');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `feedbacks`
 --
 
@@ -130,13 +163,13 @@ CREATE TABLE `inventory` (
 --
 
 INSERT INTO `inventory` (`product_id`, `product_name`, `price`, `image_url`, `quantity`, `category`, `stock`) VALUES
-(1, 'Coca-Cola', 40.00, 'https://imgs.search.brave.com/9Y6xC6W-UcL7pNVMiFcxScUDo_Bsawb_X4MuovU1zZs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA0LzM4LzY2Lzc0/LzM2MF9GXzQzODY2/NzQzMF95U2hxTW1Y/QXVIZWpsaEo5OW5S/dWJwZXhBbDE4cmZR/Zy5qcGc', 100, 'beverages', 249),
-(2, 'Tropicana Orange Juice', 60.00, 'https://imgs.search.brave.com/-l_OSOS86WQy7XXpxEwXF5iOk7UBuQ6oUp7eFK5PwjQ/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMuY2RuLnNob3By/aXRlLmNvbS9kZXRh/aWwvMDAwNDg1MDAy/MDYwMzRfMQ.jpeg', 150, 'beverages', 300),
+(1, 'Coca-Cola', 40.00, 'https://imgs.search.brave.com/9Y6xC6W-UcL7pNVMiFcxScUDo_Bsawb_X4MuovU1zZs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA0LzM4LzY2Lzc0/LzM2MF9GXzQzODY2/NzQzMF95U2hxTW1Y/QXVIZWpsaEo5OW5S/dWJwZXhBbDE4cmZR/Zy5qcGc', 100, 'beverages', 248),
+(2, 'Tropicana Orange Juice', 60.00, 'https://imgs.search.brave.com/-l_OSOS86WQy7XXpxEwXF5iOk7UBuQ6oUp7eFK5PwjQ/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMuY2RuLnNob3By/aXRlLmNvbS9kZXRh/aWwvMDAwNDg1MDAy/MDYwMzRfMQ.jpeg', 150, 'beverages', 270),
 (3, 'Whole Wheat Bread', 50.00, 'https://imgs.search.brave.com/EUzV-sR7WybSKXeT7ZO2XO0APIUDy4aFXYGc0tuF6dc/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly90cm95/ZXJzbW91bnRhaW52/aWV3LmNvbS93cC1j/b250ZW50L3VwbG9h/ZHMvMjAyNC8wMy9Q/WExfMjAyNDAzMjZf/MjA0NDU5NTc3Lmpw/ZWc', 80, 'Bread and Bakery', 75),
 (4, 'Croissant', 40.00, 'https://imgs.search.brave.com/33AGzk7j-MEg4ldfcICoHhZNYGVhYkr766i31pJ6Sjo/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzAwLzQ1Lzc4LzEy/LzM2MF9GXzQ1Nzgx/MjkwX1dha1N5VW9t/SEtURmswaVlwVHNk/c1ZLVnpaN1RrZ0I2/LmpwZw', 200, 'Bread and Bakery', 170),
 (5, 'Baguette', 40.00, 'https://imgs.search.brave.com/oQQCK7xVXmc-JD0As1F2pPlFXbHO6eoyzy43moZ5mo8/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzEyLzg3LzM4LzMz/LzM2MF9GXzEyODcz/ODMzMTlfbnFBSG5T/WUFiYjlCV2pscHhx/WlJPM09ERWxwVXY0/Y3IuanBn', 120, 'Bread and Bakery', 500),
-(6, 'Banana Bread', 45.00, 'https://imgs.search.brave.com/9k_cshuQGBzITeaGJvAKOoZrdArKyztPsZVing-u_hc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAwLzg3LzIyLzIx/LzM2MF9GXzg3MjIy/MTA5Xzh2NDVPa2ht/Rm9kWGFBaUpkN29t/dk55am1ITUN4OTd2/LmpwZw', 75, 'Bread and Bakery', 210),
-(7, 'Pepsi', 55.00, 'https://imgs.search.brave.com/EezPVqFE2sCv38wKrOHcAV8FKASuHSKVlIKIBkLhZns/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA0LzY0LzIwLzc2/LzM2MF9GXzQ2NDIw/NzY5Ml9MOTFGckhO/YmVYeVQ4WkQxV0lY/TU5lMDhqc0pLSjFL/cS5qcGc', 130, 'beverages', 699),
+(6, 'Banana Bread', 45.00, 'https://imgs.search.brave.com/9k_cshuQGBzITeaGJvAKOoZrdArKyztPsZVing-u_hc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAwLzg3LzIyLzIx/LzM2MF9GXzg3MjIy/MTA5Xzh2NDVPa2ht/Rm9kWGFBaUpkN29t/dk55am1ITUN4OTd2/LmpwZw', 75, 'Bread and Bakery', 150),
+(7, 'Pepsi', 55.00, 'https://imgs.search.brave.com/EezPVqFE2sCv38wKrOHcAV8FKASuHSKVlIKIBkLhZns/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA0LzY0LzIwLzc2/LzM2MF9GXzQ2NDIw/NzY5Ml9MOTFGckhO/YmVYeVQ4WkQxV0lY/TU5lMDhqc0pLSjFL/cS5qcGc', 130, 'beverages', 679),
 (8, 'Sprite', 25.00, 'https://imgs.search.brave.com/MqPh-_2J5EMnkX-Rf-n5AVcOqswBr26m8x03kvzTxok/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA1LzUwLzAyLzMw/LzM2MF9GXzU1MDAy/MzA4M19qVENGbHhx/cWt2WUNWdFVVMkli/MVN1ZUJuVHg5WE1N/aS5qcGc', 90, 'beverages', 106),
 (9, '7UP', 35.00, 'https://imgs.search.brave.com/pzW2BEWgUyUNJH8WlbmNDr74cgtRejsugVFd5ZvMcxQ/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWcu/dGhlY2RuLmluLzMx/OTU1MS8xLTE3MTY4/MTU3ODg0MDcucG5n/P3dpZHRoPTYwMCZm/b3JtYXQ9d2VicA', 60, 'beverages', 169),
 (10, 'Mountain Dew', 50.00, 'https://imgs.search.brave.com/_NO5kJII2K0vyW8KM6kbPFkiBhUmW31VRrSg4OLHMVE/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/aGFyZG1vdW50YWlu/ZGV3LmNvbS9Db250/ZW50L19pbWcvc3dp/cGVyQ2FuX09yaWdp/bmFsLnBuZw', 110, 'beverages', 250),
@@ -212,26 +245,30 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `user_id`, `fullname`, `email`, `branch`, `location`, `street`, `total`, `created_at`, `tracking_number`, `order_status`, `estimated_delivery_date`, `actual_delivery_date`, `payment_status`, `status`, `delivered_at`, `delivery_person`, `delivered_date`) VALUES
-(1, 0, 'stephanie Omongos', '', 'Dahilayan', 'Del Monte Pineapple Plantation', 'agusan', 50.00, '2025-05-09 01:15:47', NULL, NULL, NULL, NULL, 'Paid', 'delivered', NULL, NULL, NULL),
+(1, 0, 'stephanie Omongos', '', 'Dahilayan', 'Del Monte Pineapple Plantation', 'agusan', 50.00, '2025-05-09 01:15:47', NULL, NULL, NULL, NULL, 'Paid', 'delivered', NULL, 'Luna', '2025-05-30 00:00:00'),
 (2, 0, 'stephanie Omongos', '', 'Manolo', 'lingion', 'Zone 7 lingion', 40.00, '2025-05-09 01:18:51', NULL, NULL, NULL, NULL, 'Pending', 'Pending', NULL, NULL, NULL),
 (3, 0, 'stephanie Omongos', '', 'Manolo', 'lingion', 'Zone 7 lingion', 40.00, '2025-05-09 03:47:42', NULL, NULL, NULL, NULL, 'Pending', 'Pending', NULL, NULL, NULL),
 (4, 1, 'stephanie Omongos', '', 'Manolo', 'lingion', 'Zone 7 lingion', 45.00, '2025-05-09 03:52:03', NULL, NULL, NULL, NULL, 'Pending', 'Pending', NULL, NULL, NULL),
 (5, 1, 'stephanie Omongos', '', 'Manolo', 'San Miguel', 'pch2', 140.00, '2025-05-09 03:55:04', NULL, NULL, NULL, NULL, 'Pending', 'Pending', NULL, NULL, NULL),
-(6, 1, 'luna', '', 'Manolo', 'Dicklum', 'zone 2', 55.00, '2025-05-09 04:05:50', NULL, NULL, NULL, NULL, 'Paid', 'delivered', NULL, NULL, NULL),
+(6, 1, 'luna', '', 'Manolo', 'Dicklum', 'zone 2', 55.00, '2025-05-09 04:05:50', NULL, NULL, NULL, NULL, 'Paid', 'delivered', NULL, 'angel', '2025-05-31 00:00:00'),
 (7, 1, 'stephanie Omongos', '', 'Manolo', 'Dicklum', 'zone 2', 60.00, '2025-05-10 08:49:16', NULL, NULL, NULL, NULL, 'Pending', 'Pending', NULL, NULL, NULL),
-(8, 2, 'tephanie gurl', '', 'Manolo', 'San Miguel', 'zone 2 san miguel', 45.00, '2025-05-10 09:05:06', NULL, NULL, NULL, NULL, 'Paid', 'delivered', NULL, NULL, NULL),
+(8, 2, 'tephanie gurl', '', 'Manolo', 'San Miguel', 'zone 2 san miguel', 45.00, '2025-05-10 09:05:06', NULL, NULL, NULL, NULL, 'Paid', 'delivered', NULL, 'step ', '2025-05-21 00:00:00'),
 (9, 1, 'luna', '', 'Manolo', 'Manolo Fortich Market', 'Manoli', 70.00, '2025-05-10 11:42:42', NULL, NULL, NULL, NULL, 'Pending', 'Pending', NULL, NULL, NULL),
 (10, 1, 'sadii', '', 'Dahilayan', 'Kalugmanan', 'zone 2', 230.00, '2025-05-10 13:50:59', NULL, NULL, NULL, NULL, 'Paid', 'delivered', NULL, NULL, NULL),
-(11, 1, 'Frich', '', 'Manolo', 'Northern Bukidnon State College', 'Kihare ', 220.00, '2025-05-11 14:10:03', NULL, NULL, NULL, NULL, 'Paid', 'delivered', NULL, 'Luna', '2025-05-11 00:00:00'),
+(11, 1, 'Frich', '', 'Manolo', 'Northern Bukidnon State College', 'Kihare ', 220.00, '2025-05-11 14:10:03', NULL, NULL, NULL, NULL, 'Paid', 'completed', NULL, 'Luna', '2025-05-11 00:00:00'),
 (12, 1, 'stephanie Omongos', '', 'Manolo', 'lingion', 'Zone 7 lingion', 135.00, '2025-05-12 12:03:43', NULL, NULL, NULL, NULL, 'Pending', 'Pending', NULL, NULL, NULL),
 (13, 2, 'stephanie', '', 'Manolo', 'Manolo Fortich Market', 'Market', 115.00, '2025-05-14 16:07:02', NULL, NULL, NULL, NULL, 'Pending', 'Pending', NULL, NULL, NULL),
 (14, 2, 'ffr', '', 'Dahilayan', 'Dahilayan Adventure Park', 'wetw', 55.00, '2025-05-14 16:07:46', NULL, NULL, NULL, NULL, 'Paid', 'Pending', NULL, NULL, NULL),
 (15, 2, 'stephanie', '', 'Manolo', 'lingion', 'Zone 7 lingion', 55.00, '2025-05-14 16:13:57', NULL, NULL, NULL, NULL, 'Paid', 'completed', NULL, 'lukas', '2025-05-15 00:00:00'),
 (16, 2, 'stephanie', '', 'Manolo', 'San Miguel', 'PCH2', 40.00, '2025-05-14 16:16:11', NULL, NULL, NULL, NULL, 'Paid', 'completed', NULL, 'step', '2025-05-15 00:00:00'),
 (17, 5, 'steph', 'user@gmail.com', 'Dahilayan', 'Alomah\'s Place', '', 65.00, '2025-05-15 14:47:01', NULL, NULL, NULL, NULL, 'Pending', 'delivered', NULL, 'angel', '2025-05-31 00:00:00'),
-(18, 5, 'steph', 'user@gmail.com', 'Manolo', 'San Miguel', '', 65.00, '2025-05-15 14:48:27', NULL, NULL, NULL, NULL, 'Pending', 'delivered', NULL, 'lukas', '2025-05-23 00:00:00'),
-(19, 5, 'steph', 'user@gmail.com', 'Dahilayan', 'Mampayag', '', 40.00, '2025-05-15 14:54:38', NULL, NULL, NULL, NULL, 'Pending', 'pending', NULL, NULL, NULL),
-(20, 5, 'steph', 'user@gmail.com', 'Manolo', 'Northern Bukidnon State College', '', 340.00, '2025-05-15 15:13:40', NULL, NULL, NULL, NULL, 'Pending', 'delivered', NULL, 'lukas', '2025-05-15 00:00:00');
+(18, 5, 'steph', 'user@gmail.com', 'Manolo', 'San Miguel', '', 65.00, '2025-05-15 14:48:27', NULL, NULL, NULL, NULL, 'Pending', 'delivered', NULL, 'lukas', '2025-05-21 00:00:00'),
+(19, 5, 'steph', 'user@gmail.com', 'Dahilayan', 'Mampayag', '', 40.00, '2025-05-15 14:54:38', NULL, NULL, NULL, NULL, 'Pending', 'completed', NULL, 'step ', '2025-05-16 00:00:00'),
+(20, 5, 'steph', 'user@gmail.com', 'Manolo', 'Northern Bukidnon State College', '', 340.00, '2025-05-15 15:13:40', NULL, NULL, NULL, NULL, 'Pending', 'completed', NULL, 'lukas', '2025-05-15 00:00:00'),
+(21, 7, 'steph', 'user@gmail.com', 'Manolo', 'Lingion', '', 40.00, '2025-05-20 14:33:01', NULL, NULL, NULL, NULL, 'Pending', 'Cancelled', NULL, NULL, NULL),
+(22, 7, 'johnfrich', 'user@gmail.com', 'Dahilayan', 'Kalugmanan', '', 1100.00, '2025-05-20 14:33:31', NULL, NULL, NULL, NULL, 'Pending', 'completed', NULL, 'step ', '2025-05-20 00:00:00'),
+(23, 7, 'Luna', 'user@gmail.com', 'Dahilayan', 'Kalugmanan', '', 1800.00, '2025-05-20 15:11:21', NULL, NULL, NULL, NULL, 'Pending', 'delivered', NULL, 'step ', '2025-05-21 00:00:00'),
+(24, 7, 'Luna', 'user@gmail.com', 'Manolo', 'Camp Phillips', '', 2700.00, '2025-05-20 15:17:57', NULL, NULL, NULL, NULL, 'Pending', 'delivered', NULL, 'Luna', '2025-05-21 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -283,7 +320,11 @@ INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `product_name`, `pric
 (27, 19, 1, '', 40.00, 1, 0.00),
 (28, 20, 3, '', 50.00, 5, 0.00),
 (29, 20, 9, '', 35.00, 1, 0.00),
-(30, 20, 7, '', 55.00, 1, 0.00);
+(30, 20, 7, '', 55.00, 1, 0.00),
+(31, 21, 1, '', 40.00, 1, 0.00),
+(32, 22, 7, '', 55.00, 20, 0.00),
+(33, 23, 2, '', 60.00, 30, 0.00),
+(34, 24, 6, '', 45.00, 60, 0.00);
 
 -- --------------------------------------------------------
 
@@ -344,6 +385,19 @@ CREATE TABLE `purchase_history` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `riders`
+--
+
+CREATE TABLE `riders` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `contact` varchar(20) DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `staff`
 --
 
@@ -363,8 +417,7 @@ CREATE TABLE `staff` (
 --
 
 INSERT INTO `staff` (`staff_id`, `first_name`, `last_name`, `email`, `password`, `role`, `created_at`, `updated_at`) VALUES
-(1, 'Luna', 'claire', 'claire123@gmail.com', '$2y$10$VR2UzzuhzczRPgC4EdQ2qeLxVN4RA8J.ot4WmW1Bl1gubgHRnCpyS', 'Employee', '2025-05-14 17:36:59', '2025-05-14 17:36:59'),
-(2, 'tep', 'tep', 'staff@gmail.com', '$2y$10$8WhlO7HQbdrNKAvpeX7WWOjVVF.SHfV0rrHK4iYvU70aP1bTrAEjy', 'Employee', '2025-05-15 14:41:45', '2025-05-15 14:41:45');
+(3, 'Luna', 'tep', 'staff@gmail.com', '$2y$10$b22/syz2duxq.4u3/oQTteUjTTdwjRtmpg1mIlS2RG0.nyNpI9LGy', 'Employee', '2025-05-19 11:59:47', '2025-05-19 11:59:47');
 
 -- --------------------------------------------------------
 
@@ -394,7 +447,7 @@ INSERT INTO `users` (`id`, `first_name`, `last_name`, `contact_number`, `address
 (1, 'stephanie', 'omongos', '09657860501', 'Zone 7 lingion', 'stephanieomongos05@gmail.com', '2004-09-07', '$2y$10$fNeIeKkQAgK7kEDxwdl3EeChsPv70dKe/OMl2j51zLUpiKyWa6Cbm', '2025-05-05 13:12:44', '2025-05-14 15:35:10', 0),
 (2, 'tephanie', 'gurl', '09657860501', 'manolo fortich', 'watermelonsuga014@gmail.com', '2004-09-07', '$2y$10$G8RTvguQK9/CCG1nR4hs6OHR7xm.MMSCvyq7j8FnR5QvoI89FyhFW', '2025-05-10 09:03:58', '2025-05-14 15:35:10', 0),
 (4, 'luna', 'artemis', '09657860501', 'dicklum', 'stephanieomongos23@gmail.com', '2007-06-12', '$2y$10$HEQEDzcJ7hMwr0qhXq3mHuGfxD8ZPBJJT8DSR23026oukjznAIOu.', '2025-05-10 09:24:38', '2025-05-14 15:35:10', 0),
-(5, 'luna', 'claire', '09657860501', 'Zone 7 lingion', 'user@gmail.com', '2009-09-07', '$2y$10$fkCPQxcG2hGf0jjuKaQhlecp.Ak2XJIuUZXdR7DBfn/mSExQTZaFq', '2025-05-15 13:50:31', '2025-05-15 13:50:31', 0);
+(7, 'Luna', 'claire', '09657860501', 'Zone 7 lingion', 'user@gmail.com', '2005-09-11', '$2y$10$LYdnjLtDo9D7/RxtbJUDzOSSyOIazLwEawxrLX4I.uxdeBO/8NTiS', '2025-05-19 12:06:24', '2025-05-19 12:06:24', 0);
 
 -- --------------------------------------------------------
 
@@ -443,6 +496,18 @@ ALTER TABLE `customers`
 ALTER TABLE `customer_service_inquiries`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `customer_service_posts`
+--
+ALTER TABLE `customer_service_posts`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `feedback`
+--
+ALTER TABLE `feedback`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `feedbacks`
@@ -505,6 +570,12 @@ ALTER TABLE `purchase_history`
   ADD KEY `product_id` (`product_id`);
 
 --
+-- Indexes for table `riders`
+--
+ALTER TABLE `riders`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `staff`
 --
 ALTER TABLE `staff`
@@ -533,7 +604,7 @@ ALTER TABLE `user_orders`
 -- AUTO_INCREMENT for table `admins`
 --
 ALTER TABLE `admins`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `beverages`
@@ -551,7 +622,19 @@ ALTER TABLE `customers`
 -- AUTO_INCREMENT for table `customer_service_inquiries`
 --
 ALTER TABLE `customer_service_inquiries`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `customer_service_posts`
+--
+ALTER TABLE `customer_service_posts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `feedback`
+--
+ALTER TABLE `feedback`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `feedbacks`
@@ -581,13 +664,13 @@ ALTER TABLE `membership_plans`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -608,16 +691,22 @@ ALTER TABLE `purchase_history`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `riders`
+--
+ALTER TABLE `riders`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `staff`
 --
 ALTER TABLE `staff`
-  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `staff_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `user_orders`

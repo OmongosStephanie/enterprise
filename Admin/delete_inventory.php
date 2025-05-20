@@ -29,7 +29,7 @@ if (isset($_GET['id'])) {
     }
 } else {
     // If no ID is provided, redirect to inventory page
-    header('Location: inventory.php');
+    header('Location: update_inventory.php');
     exit();
 }
 

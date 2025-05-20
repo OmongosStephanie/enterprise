@@ -8,6 +8,21 @@ if (!isset($_SESSION['staff_logged_in'])) {
 
 include '../includes/db.php';
 
+// Auto-complete delivered orders
+$today = date('Y-m-d');
+$conn->query("
+    UPDATE orders
+    SET status = 'completed'
+    WHERE status = 'delivered' AND delivered_date IS NOT NULL AND delivered_date <= '$today'
+");
+
+// Fetch active riders
+$riders = [];
+$rider_result = $conn->query("SELECT name, contact FROM riders WHERE status = 'active'");
+while ($r = $rider_result->fetch_assoc()) {
+    $riders[$r['name']] = $r['contact'];
+}
+
 $status_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'])) {
@@ -47,24 +62,23 @@ $result = $conn->query($sql);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Payments - Staff Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans">
 <div class="flex">
-    <!-- Sidebar (Sticky) -->
     <div class="w-64 bg-gray-800 text-white h-screen p-4 fixed top-0 left-0">
         <h2 class="text-2xl font-bold mb-8">Staff</h2>
         <ul>
             <li><a href="dashboard.php" class="text-lg py-2 block">Dashboard</a></li>
             <li><a href="staff_financial.php" class="text-lg py-2 block">Financial Reports</a></li>
             <li><a href="payments.php" class="text-lg py-2 block bg-gray-700 rounded">Customer Orders</a></li>
+            <li><a href="rider.php" class="text-lg py-2 block ">Riders</a></li>
             <li><a href="logout.php" class="text-lg py-2 block mt-4 text-red-500">Logout</a></li>
         </ul>
     </div>
 
-    <!-- Main Content -->
     <div class="flex-1 p-4 ml-64">
         <div class="flex justify-between items-center bg-white p-3 rounded shadow mb-5 text-lg">
             <h2 class="text-2xl font-semibold">Management</h2>
@@ -111,20 +125,42 @@ $result = $conn->query($sql);
                                 <?php echo $row['delivered_date'] ? date('M d', strtotime($row['delivered_date'])) : "<span class='text-red-500'>No</span>"; ?>
                             </td>
                             <td class="p-3 border-b">
-                                <?php echo htmlspecialchars($row['delivery_person']) ?: "<span class='text-gray-500'>None</span>"; ?>
+                                <?php
+                                $rider = $row['delivery_person'];
+                                if ($rider && isset($riders[$rider])) {
+                                    echo "<div><strong>$rider</strong><br><span class='text-sm text-gray-600'>{$riders[$rider]}</span></div>";
+                                } elseif ($rider) {
+                                    echo "<strong>$rider</strong>";
+                                } else {
+                                    echo "<span class='text-gray-500'>None</span>";
+                                }
+                                ?>
                             </td>
                             <td class="p-3 border-b">
-                                <form method="POST" class="flex flex-col space-y-2">
-                                    <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">
-                                    <select name="status" class="border rounded p-2 text-base" required>
-                                        <option value="pending" <?php echo $row['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                        <option value="delivered" <?php echo $row['status'] === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-                                        <option value="completed" <?php echo $row['status'] === 'completed' ? 'selected' : ''; ?>>Completed</option>
-                                    </select>
-                                    <input type="date" name="delivered_date" class="border rounded p-2 text-base" value="<?php echo $row['delivered_date'] ? date('Y-m-d', strtotime($row['delivered_date'])) : ''; ?>">
-                                    <input type="text" name="delivery_person" class="border rounded p-2 text-base" placeholder="Rider" value="<?php echo htmlspecialchars($row['delivery_person']); ?>">
-                                    <button type="submit" class="bg-blue-500 text-white px-3 py-2 text-base rounded hover:bg-blue-600">Update</button>
-                                </form>
+                                <?php 
+                                $status_lower = strtolower($row['status']);
+                                if ($status_lower !== 'cancelled' && $status_lower !== 'completed'): ?>
+                                    <form method="POST" class="flex flex-col space-y-2">
+                                        <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">
+                                        <select name="status" class="border rounded p-2 text-base" required>
+                                            <option value="pending" <?php echo $status_lower === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                                            <option value="delivered" <?php echo $status_lower === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
+                                            <option value="completed" <?php echo $status_lower === 'completed' ? 'selected' : ''; ?>>Completed</option>
+                                        </select>
+                                        <input type="date" name="delivered_date" class="border rounded p-2 text-base" value="<?php echo $row['delivered_date'] ? date('Y-m-d', strtotime($row['delivered_date'])) : ''; ?>">
+                                        
+                                        <select name="delivery_person" class="border rounded p-2 text-base" required>
+                                            <option value="">-- Select Rider --</option>
+                                            <?php foreach ($riders as $name => $contact): ?>
+                                                <option value="<?php echo $name; ?>" <?php echo $row['delivery_person'] === $name ? 'selected' : ''; ?>>
+                                                    <?php echo "$name ($contact)"; ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                        <button type="submit" class="bg-blue-500 text-white px-3 py-2 text-base rounded hover:bg-blue-600">Update</button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endwhile; ?>

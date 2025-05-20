@@ -175,6 +175,7 @@ $total_pages = ceil($total_products / $limit);
         <a href="financial_report.php">Financial Report</a>
         <a href="customer.php">Customer</a>
         <a href="membership.php">Membership</a>
+         <a href="staff.php">Staff</a>
         <a href="logout.php">Logout</a>
     </div>
 

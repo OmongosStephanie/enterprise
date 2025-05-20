@@ -6,11 +6,12 @@ if (!isset($_SESSION['admin_logged_in'])) {
 }
 include '../includes/db.php';
 
-// Order status count
+// Order status count (including cancelled)
 $status_counts = [
     'pending' => 0,
     'delivered' => 0,
-    'completed' => 0
+    'completed' => 0,
+    'cancelled' => 0
 ];
 
 $sql = "SELECT status, COUNT(*) as count FROM orders GROUP BY status";
@@ -41,6 +42,7 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
     <title>Financial Report - Admin Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Same styling as before */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f9fafb;
@@ -48,12 +50,10 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
             padding: 0;
             color: #333;
         }
-
         .container {
             display: flex;
             min-height: 100vh;
         }
-
         .sidebar {
             width: 250px;
             background-color: #333;
@@ -61,12 +61,10 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
             padding: 20px;
             box-sizing: border-box;
         }
-
         .sidebar h2 {
             font-size: 1.6rem;
             margin-bottom: 24px;
         }
-
         .sidebar a {
             color: white;
             text-decoration: none;
@@ -77,11 +75,9 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
             font-weight: 600;
             transition: background-color 0.3s ease;
         }
-
         .sidebar a:hover {
             background-color: #444;
         }
-
         .content {
             flex-grow: 1;
             padding: 30px 40px;
@@ -89,21 +85,18 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
             box-sizing: border-box;
             overflow-y: auto;
         }
-
         .content h1 {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 30px;
             color: #111827;
         }
-
         .stats {
             display: flex;
             gap: 24px;
             flex-wrap: wrap;
             margin-bottom: 40px;
         }
-
         .stat-card {
             flex: 1 1 250px;
             background-color: #f3f4f6;
@@ -113,41 +106,34 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
             text-align: center;
             transition: box-shadow 0.3s ease;
         }
-
         .stat-card:hover {
             box-shadow: 0 6px 18px rgba(0,0,0,0.1);
         }
-
         .stat-card h3 {
             font-size: 1.25rem;
             color: #374151;
             margin-bottom: 12px;
             font-weight: 700;
         }
-
         .stat-card p {
             font-size: 2.5rem;
             font-weight: 800;
             color: #111827;
             margin: 0;
         }
-
         .chart-container {
             background: #ffffff;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-
         @media (max-width: 768px) {
             .stats {
                 flex-direction: column;
             }
-
             .stat-card {
                 width: 100%;
             }
-
             .content {
                 padding: 20px;
             }
@@ -165,6 +151,7 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
         <a href="financial_report.php">Financial Report</a>
         <a href="customer.php">Customer</a>
         <a href="membership.php">Membership</a>
+         <a href="staff.php">Staff</a>
         <a href="logout.php">Logout</a>
     </div>
 
@@ -186,6 +173,10 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
                 <h3>Yearly Sales</h3>
                 <p>₱<?php echo number_format($sales_yearly, 2); ?></p>
             </div>
+            <div class="stat-card" style="background-color:#fee2e2;">
+                <h3 style="color:#b91c1c;">Cancelled Orders</h3>
+                <p style="color:#b91c1c;"><?php echo $status_counts['cancelled']; ?></p>
+            </div>
         </div>
 
         <!-- Chart -->
@@ -201,16 +192,17 @@ $sales_yearly = $result->fetch_assoc()['total'] ?? 0;
     const statusChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Pending', 'Delivered', 'Completed'],
+            labels: ['Pending', 'Delivered', 'Completed', 'Cancelled'],
             datasets: [{
                 label: 'Number of Orders',
                 data: [
                     <?php echo $status_counts['pending']; ?>,
                     <?php echo $status_counts['delivered']; ?>,
-                    <?php echo $status_counts['completed']; ?>
+                    <?php echo $status_counts['completed']; ?>,
+                    <?php echo $status_counts['cancelled']; ?>
                 ],
-                backgroundColor: ['#facc15', '#3b82f6', '#10b981'],
-                borderColor: ['#eab308', '#2563eb', '#059669'],
+                backgroundColor: ['#facc15', '#3b82f6', '#10b981', '#ef4444'],
+                borderColor: ['#eab308', '#2563eb', '#059669', '#dc2626'],
                 borderWidth: 1
             }]
         },

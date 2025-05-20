@@ -20,7 +20,7 @@ if (isset($_SESSION['user_logged_in']) && $_SESSION['user_logged_in'] === true) 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome • Sign In / Sign Up</title>
+    <title>Welcome </title>
     <style>
         body {
             font-family: Arial, sans-serif;
